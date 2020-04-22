@@ -1,0 +1,41 @@
+{
+  "name": "metglobal-compass/dto-bundle",
+  "description": "Data transfer object library for symfony applications",
+  "type": "symfony-bundle",
+  "keywords": [
+    "dto",
+    "data transfer object",
+    "param converter"
+  ],
+  "require": {
+    "php": ">=7.0",
+    "doctrine/annotations": "~1.0",
+    "symfony/property-access": "^3.4|^4.4|^5.0",
+    "sensio/framework-extra-bundle": "~5.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": ">5.0"
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "1.0.x-dev"
+    }
+  },
+  "autoload": {
+    "psr-4": {
+      "Metglobal\\Compass\\DTO\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Metglobal\\Compass\\DTO\\Tests\\": "tests/"
+    }
+  },
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Mehmet Gökalp",
+      "email": "me@mehmetgokalp.com"
+    }
+  ]
+}
