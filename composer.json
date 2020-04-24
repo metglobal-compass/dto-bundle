@@ -23,11 +23,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Metglobal\\Compass\\DTO\\": "src/"
-    }
-  },
-  "autoload-dev": {
-    "psr-4": {
+      "Metglobal\\Compass\\DTO\\": "src/",
       "Metglobal\\Compass\\DTO\\Tests\\": "tests/"
     }
   },

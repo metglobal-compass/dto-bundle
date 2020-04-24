@@ -5,7 +5,7 @@ namespace Metglobal\Compass\DTO;
 use Doctrine\Common\Annotations\Reader;
 use Metglobal\Compass\DTO\Annotation\Parameter;
 use Metglobal\Compass\DTO\Request AS RequestDTO;
-use Metglobal\Compass\Exception\DTOException;
+use Metglobal\Compass\DTO\Exception\DTOException;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionProperty;
