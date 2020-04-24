@@ -11,11 +11,11 @@ use Metglobal\Compass\DTO\Tests\Fixtures\PropertyDefinedClass;
 use Metglobal\Compass\DTO\Tests\Fixtures\SimpleClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 
-class DTOParamConverterTest extends WebTestCase
+class DTOParamConverterTest extends TestCase
 {
     const VARIABLE_NAME = 'var';
 

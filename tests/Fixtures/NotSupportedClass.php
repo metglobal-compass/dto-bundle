@@ -1,5 +1,5 @@
 <?php
 
-namespace Metglobal\Compass\DTO\Fixtures;
+namespace Metglobal\Compass\DTO\Tests\Fixtures;
 
 class NotSupportedClass {}

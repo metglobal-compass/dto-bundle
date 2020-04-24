@@ -1,6 +1,6 @@
 <?php
 
-namespace Metglobal\Compass\DTO\Fixtures;
+namespace Metglobal\Compass\DTO\Tests\Fixtures;
 
 use Metglobal\Compass\DTO\Request;
 
