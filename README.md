@@ -160,3 +160,6 @@ Request:
        }  
     }
 
+## Contributing
+
+If you're having problems, spot a bug, or have a feature suggestion, please log and issue on Github. If you'd like to have a crack yourself, fork the package and make a pull request. Please include tests for any added or changed functionality. If it's a bug, include a regression test.
