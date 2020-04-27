@@ -20,13 +20,12 @@
   },
   "extra": {
     "branch-alias": {
-      "dev-master": "1.0.x-dev"
+      "dev-master": "0.1.x-dev"
     }
   },
   "autoload": {
     "psr-4": {
-      "Metglobal\\Compass\\DTO\\": "src/",
-      "Metglobal\\Compass\\DTO\\Tests\\": "tests/"
+      "Metglobal\\Compass\\DTO\\": ""
     }
   },
   "license": "MIT",
