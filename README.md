@@ -1,55 +1,98 @@
 # Metglobal Compass DTO Bundle
 This bundle is focused to inject request parameters into data transfer objects.
-## How to install
-Via composer:
 
-`composer require metglobal-compass/dto-bundle`
+Installation
+============
 
-and inject the converter into your container with `param_converter` tag and set a priority lower than zero to it.
+Make sure Composer is installed globally, as explained in the
+[installation chapter](https://getcomposer.org/doc/00-intro.md)
+of the Composer documentation.
 
-Example:
+Applications that use Symfony Flex
+----------------------------------
 
-    Metglobal\Compass\DTO\DTOParamConverter:
-        tags:
-            - { name: request.param_converter, priority: -2, converter: dto_converter }
+Open a command console, enter your project directory and execute:
 
-## How to use:
+```console
+$ composer require metglobal-compass/dto-bundle
+```
+
+Applications that don't use Symfony Flex
+----------------------------------------
+
+### Step 1: Download the Bundle
+
+Open a command console, enter your project directory and execute the
+following command to download the latest stable version of this bundle:
+
+```console
+$ composer require metglobal-compass/dto-bundle
+```
+
+### Step 2: Enable the Bundle
+
+Then, enable the bundle by adding it to the list of registered bundles
+in the `config/bundles.php` file of your project:
+
+```php
+// config/bundles.php
+
+return [
+    // ...
+    \Metglobal\Compass\DTO\DTOBundle::class => ['all' => true],
+];
+```
+
+### Step 3: Enable the param converter
+```yaml
+Metglobal\Compass\DTO\DTOParamConverter:
+    tags:
+        - { name: request.param_converter, priority: -2, converter: dto_converter }
+```
+
+How to use
+============
 Define a controller method parameter with type hint. The type hint must be instance of `\Metglobal\Compass\Domain\DTO\Request`. If it is symfony will try to resolve the parameters with default configurations. Using the `\Metglobal\Compass\DTO\DTOParamConverter`.
 
 See: `\Metglobal\Compass\DTO\DTOParamConverter::supports`.
 
-Default parameter resolver parameters (see: `\Metglobal\Compass\DTO\DTOParamConverter::getParameterOptionsResolver`):  
+Default parameter resolver parameters (see: `\Metglobal\Compass\DTO\DTOParamConverter::getParameterOptionsResolver`):
 
-    [ 'type' => 'string', 'scope' => 'request', 'disabled' => false, 'nullable' => true ]  
+    [ 'type' => 'string', 'scope' => 'request', 'disabled' => false, 'nullable' => true ]
 
 Property annotation example: 
 
-    @Metglobal\Compass\Annotation\DTO\Parameter(  
-        type="string",  
-        scope="request",  
+    @Metglobal\Compass\Annotation\DTO\Parameter(
+        type="string",
+        scope="request",
         path="pathOfThisParameter",
         nullable=false,
         disabled=false 
-    )  
+    )
 
 
-### Available annotation options
+Available annotation options
+===========================
 The converter will try to resolve all the things automatically with defaults but you can configure below parameters using the `Metglobal\Compass\Annotation\DTO\Parameter` annotation and also if you do not define this annotation to property it'll try to resolve the itself too.
-#### type:
+
+type:
+----
 Variable's type. Available types are: 'string', 'boolean', 'integer', 'int'.
 
 **Warning:** boolean type is not nullable field because of the definition: `\Symfony\Component\HttpFoundation\ParameterBag::getBoolean`. It'll set false into variable in case of null.
 
-#### scope:
-Variable's scope. Available scopes are: 'request', 'query', 'headers', 'attributes'  
+scope:
+-----
+Variable's scope. Available scopes are: 'request', 'query', 'headers', 'attributes'
 
-#### path:
-Variable's path. It's default is property's name but you can customise the path of variable.  
-Example:  
+path:
+----
+Variable's path. It's default is property's name but you can customise the path of variable.
+Example:
 Url: `*.com?testPath=3`
 
     /**
-     * @Parameter(scope="query", path="testPath")  
+     * @Parameter(scope="query", path="testPath")
     */
     public $differentName;
 
@@ -57,109 +100,118 @@ It'll set 3 into $differentName.
 
 **Warning:** This parameter is required per property if you do not define, it'll try to resolve the parameter with it's property name. It means in above example path will `differentName`.
 
-#### nullable:
-Defined property can be nullable or not.  
+nullable:
+--------
+Defined property can be nullable or not.
 **Warning:** If you define a default value, it'll be not nullable field as default 
-#### disabled:
+
+disabled:
+--------
 Disable injection for selected parameter.
 
-### Extra annotation tips
+Extra annotation tips
+=====================
 This annotation can be use at property or class. If you define this property to class it will effect all the classes properties.
 
     Default parameters overrides --> Class annotation parameters (If exists) overrides --> Property annotation parameters (If exists)
 
 For every parameter it call the method that finds the final injection configs **per property**.
 Example:
+```php
+<?php
+namespace Metglobal\Compass\Request;
 
-    <?php  
-    namespace Metglobal\Compass\Request;  
-      
-    use Metglobal\Compass\DTO\Annotation\Parameter;  
-    use Metglobal\Compass\DTO\Request;  
-      
-    /**  
-     * @Parameter(scope="query")  
-     */
-    class DummyRequest implements Request
-    {
-        /**
-        * @Parameter(type="int")
-        *
-        * @var int  
-        */
-        public $xyzProperty;  
-        
-        /**
-        * @Parameter(type="int")
-        *
-        * @var int  
-        */
-        public $abcProperty;
-    }
+use Metglobal\Compass\DTO\Annotation\Parameter;
+use Metglobal\Compass\DTO\Request;
+
+/**
+ * @Parameter(scope="query")
+ */
+class DummyRequest implements Request
+{
+    /**
+    * @Parameter(type="int")
+    *
+    * @var int
+    */
+    public $xyzProperty;
+  
+    /**
+    * @Parameter(type="int")
+    *
+    * @var int
+    */
+    public $abcProperty;
+}
+```
 In above class, the `$xyzProperty` will inject from `query` scope and the `$abcProperty` will inject from query with
 integer type cast.
 
-### The `\Metglobal\Compass\DTO\CallableRequest` interface
+The `\Metglobal\Compass\DTO\CallableRequest` interface
+======================================================
 You should inject all the simple parameters using above configurations with the `@Metglobal\Compass\Annotation\DTO\Parameter` annotation but if there is a complex logic that the annotation can not handle you can use this interface as callback method.
 
-In `call()` method you can modify the object's properties using `...$args` variables.  
+In `call()` method you can modify the object's properties using `...$args` variables.
 **Tip:** If you dont know what does `...$args` mean see the RFC: https://wiki.php.net/rfc/argument_unpacking.
-#### Example usage:
-Controller:
+Example usage:
+--------------
+### Controller:
+```php
+<?php
+namespace Metglobal\Compass\Controller;
 
-    <?php  
-    namespace Metglobal\Compass\Controller;  
-      
-    use Symfony\Bundle\FrameworkBundle\Controller\Controller;  
-    use Symfony\Component\HttpFoundation\JsonResponse;  
-    use Symfony\Component\Routing\Annotation\Route;  
-    ...  
-      
-    class DummyController extends Controller  
-    {  
-      /**  
-       * @Route("/dummy/{id}", requirements={"id" = "\d+"}, methods={"DELETE"}, name="dummy_route")  
-       */
-       public function __invoke(XService $xService, YService $yService, ZService $ZService, DummyRequest $request): JsonResponse  
-       {
-           $request->call($xService, $yService);  
-     
-           return new JsonResponse($ZService->handle($request));  
-       }  
-    }
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Routing\Annotation\Route;
+...
 
-Request:
+class DummyController extends Controller
+{
+  /**
+   * @Route("/dummy/{id}", requirements={"id" = "\d+"}, methods={"DELETE"}, name="dummy_route")
+   */
+   public function __invoke(XService $xService, YService $yService, ZService $ZService, DummyRequest $request): JsonResponse
+   {
+       $request->call($xService, $yService);
 
-    <?php  
-    namespace Metglobal\Compass\Request;  
-      
-    use Metglobal\Compass\DTO\Annotation\Parameter;  
-    use Metglobal\Compass\DTO\CallableRequest;  
-      
-    /**  
-     * @Parameter(scope="query")  
-     */
-    class DummyRequest implements CallableRequest  
-    {  
-      /**  
-       * @Parameter(  
-       *     type="int" *
-       * )
-       * 
-       * @var int  
-       */
-       public $xyzProperty;  
-      
-       public $abcProperty;  
-      
-       public function call(...$args)  
-       {
-           [ $xService, $yService ] = $args;  
-      
-            $this->xyzProperty = $xService->aMethod($yService->bMethod($this->xyzProperty));  
-       }  
-    }
+       return new JsonResponse($ZService->handle($request));
+   }
+}
+```
 
-## Contributing
+### Request:
+```php
+<?php
+namespace Metglobal\Compass\Request;
 
+use Metglobal\Compass\DTO\Annotation\Parameter;
+use Metglobal\Compass\DTO\CallableRequest;
+
+/**
+ * @Parameter(scope="query")
+ */
+class DummyRequest implements CallableRequest
+{
+  /**
+   * @Parameter(
+   *     type="int" *
+   * )
+   * 
+   * @var int
+   */
+   public $xyzProperty;
+
+   public $abcProperty;
+
+   public function call(...$args)
+   {
+       [ $xService, $yService ] = $args;
+
+        $this->xyzProperty = $xService->aMethod($yService->bMethod($this->xyzProperty));
+   }
+}
+```
+
+Contributing
+============
 If you're having problems, spot a bug, or have a feature suggestion, please log and issue on Github. If you'd like to have a crack yourself, fork the package and make a pull request. Please include tests for any added or changed functionality. If it's a bug, include a regression test.
