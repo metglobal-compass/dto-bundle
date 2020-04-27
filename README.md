@@ -153,6 +153,7 @@ You should inject all the simple parameters using above configurations with the 
 
 In `call()` method you can modify the object's properties using `...$args` variables.
 **Tip:** If you dont know what does `...$args` mean see the RFC: https://wiki.php.net/rfc/argument_unpacking.
+
 Example usage:
 --------------
 ### Controller:
