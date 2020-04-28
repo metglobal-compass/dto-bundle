@@ -1,6 +1,6 @@
 <?php
 
-namespace Metglobal\Compass\DTO;
+namespace Metglobal\DTOBundle;
 
 interface CallableRequest extends Request
 {

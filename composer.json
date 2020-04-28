@@ -1,5 +1,5 @@
 {
-  "name": "metglobal-compass/dto-bundle",
+  "name": "metglobal/dto-bundle",
   "description": "Data transfer object library for symfony applications",
   "type": "symfony-bundle",
   "keywords": [
@@ -25,7 +25,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Metglobal\\Compass\\DTO\\": ""
+      "Metglobal\\DTOBundle\\": ""
     }
   },
   "license": "MIT",

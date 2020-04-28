@@ -1,6 +1,6 @@
 <?php
 
-namespace Metglobal\Compass\DTO\Annotation;
+namespace Metglobal\DTOBundle\Annotation;
 
 /**
  * @Annotation
@@ -20,7 +20,7 @@ final class Parameter
      * @var string
      */
     public $scope;
-    
+
     /**
      * @var string
      */

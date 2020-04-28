@@ -1,9 +1,9 @@
 <?php
 
-namespace Metglobal\Compass\DTO\Tests\Fixtures;
+namespace Metglobal\DTOBundle\Tests\Fixtures;
 
-use Metglobal\Compass\DTO\Annotation\Parameter;
-use Metglobal\Compass\DTO\Request;
+use Metglobal\DTOBundle\Annotation\Parameter;
+use Metglobal\DTOBundle\Request;
 
 class PropertyDefinedClass implements Request
 {

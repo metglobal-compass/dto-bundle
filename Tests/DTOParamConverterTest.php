@@ -3,12 +3,12 @@
 namespace Gts\ApiBundle\Tests\Functional\Service;
 
 use Doctrine\Common\Annotations\AnnotationReader;
-use Metglobal\Compass\DTO\DTOParamConverter;
-use Metglobal\Compass\DTO\Tests\Fixtures\CallableMethodDefinedClass;
-use Metglobal\Compass\DTO\Tests\Fixtures\ClassPropertyDefinedClass;
-use Metglobal\Compass\DTO\Tests\Fixtures\NotSupportedClass;
-use Metglobal\Compass\DTO\Tests\Fixtures\PropertyDefinedClass;
-use Metglobal\Compass\DTO\Tests\Fixtures\SimpleClass;
+use Metglobal\DTOBundle\DTOParamConverter;
+use Metglobal\DTOBundle\Tests\Fixtures\CallableMethodDefinedClass;
+use Metglobal\DTOBundle\Tests\Fixtures\ClassPropertyDefinedClass;
+use Metglobal\DTOBundle\Tests\Fixtures\NotSupportedClass;
+use Metglobal\DTOBundle\Tests\Fixtures\PropertyDefinedClass;
+use Metglobal\DTOBundle\Tests\Fixtures\SimpleClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use PHPUnit\Framework\TestCase;
@@ -19,7 +19,7 @@ class DTOParamConverterTest extends TestCase
 {
     const VARIABLE_NAME = 'var';
 
-    /** @var \Metglobal\Compass\DTO\DTOParamConverter */
+    /** @var \Metglobal\DTOBundle\DTOParamConverter */
     protected $converter;
 
     public function setUp()

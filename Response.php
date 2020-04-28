@@ -1,5 +1,5 @@
 <?php
 
-namespace Metglobal\Compass\DTO;
+namespace Metglobal\DTOBundle;
 
 interface Response {}

@@ -39,24 +39,24 @@ in the `config/bundles.php` file of your project:
 
 return [
     // ...
-    \Metglobal\Compass\DTO\DTOBundle::class => ['all' => true],
+    \Metglobal\DTOBundle\DTOBundle::class => ['all' => true],
 ];
 ```
 
 ### Step 3: Enable the param converter
 ```yaml
-Metglobal\Compass\DTO\DTOParamConverter:
+Metglobal\DTOBundle\DTOParamConverter:
     tags:
         - { name: request.param_converter, priority: -2, converter: dto_converter }
 ```
 
 How to use
 ============
-Define a controller method parameter with type hint. The type hint must be instance of `\Metglobal\Compass\Domain\DTO\Request`. If it is symfony will try to resolve the parameters with default configurations. Using the `\Metglobal\Compass\DTO\DTOParamConverter`.
+Define a controller method parameter with type hint. The type hint must be instance of `\Metglobal\Compass\Domain\DTO\Request`. If it is symfony will try to resolve the parameters with default configurations. Using the `\Metglobal\DTOBundle\DTOParamConverter`.
 
-See: `\Metglobal\Compass\DTO\DTOParamConverter::supports`.
+See: `\Metglobal\DTOBundle\DTOParamConverter::supports`.
 
-Default parameter resolver parameters (see: `\Metglobal\Compass\DTO\DTOParamConverter::getParameterOptionsResolver`):
+Default parameter resolver parameters (see: `\Metglobal\DTOBundle\DTOParamConverter::getParameterOptionsResolver`):
 
     [ 'type' => 'string', 'scope' => 'request', 'disabled' => false, 'nullable' => true ]
 
@@ -121,8 +121,8 @@ Example:
 <?php
 namespace Metglobal\Compass\Request;
 
-use Metglobal\Compass\DTO\Annotation\Parameter;
-use Metglobal\Compass\DTO\Request;
+use Metglobal\DTOBundle\Annotation\Parameter;
+use Metglobal\DTOBundle\Request;
 
 /**
  * @Parameter(scope="query")
@@ -147,7 +147,7 @@ class DummyRequest implements Request
 In above class, the `$xyzProperty` will inject from `query` scope and the `$abcProperty` will inject from query with
 integer type cast.
 
-The `\Metglobal\Compass\DTO\CallableRequest` interface
+The `\Metglobal\DTOBundle\CallableRequest` interface
 ======================================================
 You should inject all the simple parameters using above configurations with the `@Metglobal\Compass\Annotation\DTO\Parameter` annotation but if there is a complex logic that the annotation can not handle you can use this interface as callback method.
 
@@ -185,8 +185,8 @@ class DummyController extends Controller
 <?php
 namespace Metglobal\Compass\Request;
 
-use Metglobal\Compass\DTO\Annotation\Parameter;
-use Metglobal\Compass\DTO\CallableRequest;
+use Metglobal\DTOBundle\Annotation\Parameter;
+use Metglobal\DTOBundle\CallableRequest;
 
 /**
  * @Parameter(scope="query")

@@ -1,8 +1,8 @@
 <?php
 
-namespace Metglobal\Compass\DTO\Tests\Fixtures;
+namespace Metglobal\DTOBundle\Tests\Fixtures;
 
-use Metglobal\Compass\DTO\Request;
+use Metglobal\DTOBundle\Request;
 
 class SimpleClass implements Request
 {

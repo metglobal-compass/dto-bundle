@@ -1,6 +1,6 @@
 <?php
 
-namespace Metglobal\Compass\DTO\Exception;
+namespace Metglobal\DTOBundle\Exception;
 
 use LogicException;
 use Throwable;

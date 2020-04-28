@@ -1,10 +1,10 @@
 <?php
 
-namespace Metglobal\Compass\DTO\Tests\Fixtures;
+namespace Metglobal\DTOBundle\Tests\Fixtures;
 
-use Metglobal\Compass\DTO\Annotation\Parameter;
-use Metglobal\Compass\DTO\CallableRequest;
-use Metglobal\Compass\DTO\Request;
+use Metglobal\DTOBundle\Annotation\Parameter;
+use Metglobal\DTOBundle\CallableRequest;
+use Metglobal\DTOBundle\Request;
 
 class CallableMethodDefinedClass implements CallableRequest
 {

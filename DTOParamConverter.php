@@ -1,11 +1,11 @@
 <?php
 
-namespace Metglobal\Compass\DTO;
+namespace Metglobal\DTOBundle;
 
 use Doctrine\Common\Annotations\Reader;
-use Metglobal\Compass\DTO\Annotation\Parameter;
-use Metglobal\Compass\DTO\Request AS RequestDTO;
-use Metglobal\Compass\DTO\Exception\DTOException;
+use Metglobal\DTOBundle\Annotation\Parameter;
+use Metglobal\DTOBundle\Request AS RequestDTO;
+use Metglobal\DTOBundle\Exception\DTOException;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionProperty;
