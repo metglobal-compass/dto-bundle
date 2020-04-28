@@ -39,7 +39,7 @@ in the `config/bundles.php` file of your project:
 
 return [
     // ...
-    \Metglobal\DTOBundle\DTOBundle::class => ['all' => true],
+    Metglobal\DTOBundle\DTOBundle::class => ['all' => true],
 ];
 ```
 
@@ -90,11 +90,12 @@ path:
 Variable's path. It's default is property's name but you can customise the path of variable.
 Example:
 Url: `*.com?testPath=3`
-
-    /**
-     * @Parameter(scope="query", path="testPath")
-    */
-    public $differentName;
+```php
+/**
+ * @Parameter(scope="query", path="testPath")
+ */
+public $differentName;
+```
 
 It'll set 3 into $differentName.
 
