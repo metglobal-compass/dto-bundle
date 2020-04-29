@@ -1,3 +1,7 @@
+## 0.1.2 (April 29, 2020)
+  - Travis.yml added
+  - Fix README.md
+
 ## 0.1.1 (April 28, 2020)
   - Namespace changed
   - README typo fixed
