@@ -56,7 +56,7 @@ final class DTOParamConverter implements ParamConverterInterface
             $instance = new $class;
             $request->attributes->set($configuration->getName(), $instance);
 
-            foreach ($this->getProperties($instance) AS $parameter => $parameterOptions) {
+            foreach ($this->getProperties($instance) as $parameter => $parameterOptions) {
                 $value = $this->getValue($request,
                     $parameterOptions[self::PROPERTY_OPTION_SCOPE],
                     $parameterOptions[self::PROPERTY_OPTION_PATH],
@@ -106,7 +106,7 @@ final class DTOParamConverter implements ParamConverterInterface
 
         $summary = [];
         $classAnnotationParameters = $this->readClassAnnotationParameters($reflectionClass);
-        foreach ($reflectionClass->getProperties() AS $reflectionProperty) {
+        foreach ($reflectionClass->getProperties() as $reflectionProperty) {
             $propertyName = $reflectionProperty->getName();
             $parameters = [
                 [
