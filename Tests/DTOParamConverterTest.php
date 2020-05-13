@@ -118,7 +118,7 @@ class DTOParamConverterTest extends TestCase
         $this->assertInstanceOf(SimpleClass::class, $target);
         /**
          * Because in default properties are nullable
-         * @see \Gts\ApiBundle\DTO\DTOParamConverter::PROPERTY_OPTION_NULLABLE
+         * @see \Metglobal\DTOBundle\DTOParamConverter::PROPERTY_OPTION_NULLABLE
          **/
         $this->assertNull($target->testProperty);
     }
