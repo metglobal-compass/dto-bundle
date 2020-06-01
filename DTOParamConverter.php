@@ -4,8 +4,10 @@ namespace Metglobal\DTOBundle;
 
 use Doctrine\Common\Annotations\Reader;
 use Metglobal\DTOBundle\Annotation\Parameter;
-use Metglobal\DTOBundle\Request AS RequestDTO;
+use Metglobal\DTOBundle\Annotation\PostSet;
+use Metglobal\DTOBundle\Annotation\PreSet;
 use Metglobal\DTOBundle\Exception\DTOException;
+use Metglobal\DTOBundle\Request as RequestDTO;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionProperty;
@@ -16,10 +18,6 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Throwable;
 
-/**
- * Class DTOParamConverter
- * @package Metglobal\Compass\Service
- */
 final class DTOParamConverter implements ParamConverterInterface
 {
     const PROPERTY_OPTION_SCOPE = 'scope';
@@ -33,15 +31,11 @@ final class DTOParamConverter implements ParamConverterInterface
     const DEFAULT_OPTION_NULLABLE = true;
     const DEFAULT_OPTION_DISABLED = false;
 
-    /**
-     * @var PropertyAccessorInterface
-     */
-    private $propertyAccessor;
+    /** @var PropertyAccessorInterface */
+    protected $propertyAccessor;
 
-    /**
-     * @var Reader
-     */
-    private $annotationReader;
+    /** @var Reader */
+    protected $annotationReader;
 
     public function __construct(PropertyAccessorInterface $propertyAccessor, Reader $annotationReader)
     {
@@ -53,11 +47,15 @@ final class DTOParamConverter implements ParamConverterInterface
     {
         try {
             $class = $configuration->getClass();
-            $instance = new $class;
+            $instance = new $class();
             $request->attributes->set($configuration->getName(), $instance);
 
-            foreach ($this->getProperties($instance) as $parameter => $parameterOptions) {
-                $value = $this->getValue($request,
+            $reflectionClass = new ReflectionClass($instance);
+            $this->callEvent($reflectionClass, $instance, PreSet::class);
+
+            foreach ($this->getProperties($instance, $reflectionClass) as $parameter => $parameterOptions) {
+                $value = $this->getValue(
+                    $request,
                     $parameterOptions[self::PROPERTY_OPTION_SCOPE],
                     $parameterOptions[self::PROPERTY_OPTION_PATH],
                     $parameterOptions[self::PROPERTY_OPTION_TYPE]
@@ -67,6 +65,8 @@ final class DTOParamConverter implements ParamConverterInterface
                     $this->propertyAccessor->setValue($instance, $parameter, $value);
                 }
             }
+
+            $this->callEvent($reflectionClass, $instance, PostSet::class);
         } catch (Throwable $e) {
             throw new DTOException('An error occurred while setting parameters into DTO.', $e);
         }
@@ -74,22 +74,37 @@ final class DTOParamConverter implements ParamConverterInterface
         return true;
     }
 
-    private function getParameterOptionsResolver(): OptionsResolver
+    protected function callEvent(ReflectionClass $reflectionClass, RequestDTO $instance, string $eventClass)
+    {
+        foreach ($reflectionClass->getMethods( \ReflectionMethod::IS_PUBLIC) as $reflectionMethod) {
+            $annotation = $this->annotationReader->getMethodAnnotation($reflectionMethod, $eventClass);
+
+            if ($annotation === null) {
+                continue;
+            }
+
+            $reflectionMethod->invoke($instance);
+        }
+    }
+
+    protected function getParameterOptionsResolver(): OptionsResolver
     {
         $resolver = new OptionsResolver();
 
-        $resolver->setDefaults([
-            self::PROPERTY_OPTION_TYPE => self::DEFAULT_OPTION_TYPE,
-            self::PROPERTY_OPTION_SCOPE => self::DEFAULT_OPTION_SCOPE,
-            self::PROPERTY_OPTION_NULLABLE => self::DEFAULT_OPTION_NULLABLE,
-            self::PROPERTY_OPTION_DISABLED => self::DEFAULT_OPTION_DISABLED,
-        ]);
+        $resolver->setDefaults(
+            [
+                self::PROPERTY_OPTION_TYPE => self::DEFAULT_OPTION_TYPE,
+                self::PROPERTY_OPTION_SCOPE => self::DEFAULT_OPTION_SCOPE,
+                self::PROPERTY_OPTION_NULLABLE => self::DEFAULT_OPTION_NULLABLE,
+                self::PROPERTY_OPTION_DISABLED => self::DEFAULT_OPTION_DISABLED,
+            ]
+        );
 
-        $resolver->setAllowedTypes(self::PROPERTY_OPTION_NULLABLE, [ 'boolean', 'null' ]);
-        $resolver->setAllowedTypes(self::PROPERTY_OPTION_DISABLED, [ 'boolean', 'null' ]);
-        $resolver->setAllowedValues(self::PROPERTY_OPTION_TYPE, [ 'string', 'boolean', 'integer', 'int', null ]);
-        $resolver->setAllowedValues(self::PROPERTY_OPTION_SCOPE, [ 'request', 'query', 'headers', 'attributes', null ]);
-        $resolver->setRequired([ self::PROPERTY_OPTION_PATH ]);
+        $resolver->setAllowedTypes(self::PROPERTY_OPTION_NULLABLE, ['boolean', 'null']);
+        $resolver->setAllowedTypes(self::PROPERTY_OPTION_DISABLED, ['boolean', 'null']);
+        $resolver->setAllowedValues(self::PROPERTY_OPTION_TYPE, ['string', 'boolean', 'integer', 'int', null]);
+        $resolver->setAllowedValues(self::PROPERTY_OPTION_SCOPE, ['request', 'query', 'headers', 'attributes', null]);
+        $resolver->setRequired([self::PROPERTY_OPTION_PATH]);
 
         return $resolver;
     }
@@ -99,9 +114,8 @@ final class DTOParamConverter implements ParamConverterInterface
      * @return array
      * @throws ReflectionException
      */
-    private function getProperties(RequestDTO $dto): array
+    protected function getProperties(RequestDTO $dto, ReflectionClass $reflectionClass): array
     {
-        $reflectionClass = new ReflectionClass($dto);
         $parameterOptionsResolver = $this->getParameterOptionsResolver();
 
         $summary = [];
@@ -123,7 +137,10 @@ final class DTOParamConverter implements ParamConverterInterface
                     continue;
                 }
 
-                $annotationParameters = $this->readPropertyAnnotationParameters($propertyAnnotation, $reflectionProperty);
+                $annotationParameters = $this->readPropertyAnnotationParameters(
+                    $propertyAnnotation,
+                    $reflectionProperty
+                );
 
                 $parameters[] = $annotationParameters;
             }
@@ -143,7 +160,7 @@ final class DTOParamConverter implements ParamConverterInterface
         return $summary;
     }
 
-    private function readClassAnnotationParameters(ReflectionClass $class): array
+    protected function readClassAnnotationParameters(ReflectionClass $class): array
     {
         /**
          * @var Parameter|null $annotation
@@ -156,35 +173,39 @@ final class DTOParamConverter implements ParamConverterInterface
 
         // We're filtering the options, because the null
         // values are overriding the parent configurations
-        return $this->filterOptions([
-            self::PROPERTY_OPTION_TYPE => $annotation->type,
-            self::PROPERTY_OPTION_SCOPE => $annotation->scope,
-            self::PROPERTY_OPTION_DISABLED => $annotation->disabled,
-        ]);
+        return $this->filterOptions(
+            [
+                self::PROPERTY_OPTION_TYPE => $annotation->type,
+                self::PROPERTY_OPTION_SCOPE => $annotation->scope,
+                self::PROPERTY_OPTION_DISABLED => $annotation->disabled,
+            ]
+        );
     }
 
     /**
      * @param ReflectionProperty $property
      * @return object|Parameter|null
      */
-    private function readPropertyAnnotation(ReflectionProperty $property)
+    protected function readPropertyAnnotation(ReflectionProperty $property)
     {
         return $this->annotationReader->getPropertyAnnotation($property, Parameter::class);
     }
 
-    private function readPropertyAnnotationParameters(Parameter $annotation, ReflectionProperty $property): array
+    protected function readPropertyAnnotationParameters(Parameter $annotation, ReflectionProperty $property): array
     {
         // We're filtering the options, because the null
         // values are overriding the parent configurations
-        return $this->filterOptions([
-            self::PROPERTY_OPTION_TYPE => $annotation->type,
-            self::PROPERTY_OPTION_SCOPE => $annotation->scope,
-            self::PROPERTY_OPTION_DISABLED => $annotation->disabled,
-            self::PROPERTY_OPTION_PATH => $annotation->path ?? $property->getName(),
-        ]);
+        return $this->filterOptions(
+            [
+                self::PROPERTY_OPTION_TYPE => $annotation->type,
+                self::PROPERTY_OPTION_SCOPE => $annotation->scope,
+                self::PROPERTY_OPTION_DISABLED => $annotation->disabled,
+                self::PROPERTY_OPTION_PATH => $annotation->path ?? $property->getName(),
+            ]
+        );
     }
 
-    private function getValue(Request $request, string $scope, string $path, string $typeCast)
+    protected function getValue(Request $request, string $scope, string $path, string $typeCast)
     {
         $value = $this->propertyAccessor->getValue($request->{$scope}->all(), $this->normalizePath($path, $scope));
 
@@ -216,7 +237,7 @@ final class DTOParamConverter implements ParamConverterInterface
         return $value;
     }
 
-    private function normalizePath(string $path, string $scope): string
+    protected function normalizePath(string $path, string $scope): string
     {
         if ($path[0] !== '[') {
             $path = sprintf('[%s]', $path);
@@ -230,11 +251,14 @@ final class DTOParamConverter implements ParamConverterInterface
         return $path;
     }
 
-    private function filterOptions(array $options): array
+    protected function filterOptions(array $options): array
     {
-        return array_filter($options, static function ($value) {
-            return $value !== null;
-        });
+        return array_filter(
+            $options,
+            static function ($value) {
+                return $value !== null;
+            }
+        );
     }
 
     public function supports(ParamConverter $configuration)

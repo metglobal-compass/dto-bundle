@@ -7,6 +7,8 @@ use Metglobal\DTOBundle\DTOParamConverter;
 use Metglobal\DTOBundle\Tests\Fixtures\CallableMethodDefinedClass;
 use Metglobal\DTOBundle\Tests\Fixtures\ClassPropertyDefinedClass;
 use Metglobal\DTOBundle\Tests\Fixtures\NotSupportedClass;
+use Metglobal\DTOBundle\Tests\Fixtures\PostSetEventDefinedClass;
+use Metglobal\DTOBundle\Tests\Fixtures\PreSetEventDefinedClass;
 use Metglobal\DTOBundle\Tests\Fixtures\PropertyDefinedClass;
 use Metglobal\DTOBundle\Tests\Fixtures\SimpleClass;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -100,6 +102,44 @@ class DTOParamConverterTest extends TestCase
 
         $this->assertInstanceOf(CallableMethodDefinedClass::class, $target);
         $this->assertSame($target->testProperty, 'givenValue');
+    }
+
+    public function testPreSetEventDefinedClass()
+    {
+        $request = new Request();
+        $configuration = $this->createConfiguration(
+            PreSetEventDefinedClass::class,
+            self::VARIABLE_NAME
+        );
+
+        $this->converter->apply($request, $configuration);
+        /**
+         * @var PreSetEventDefinedClass|null $target
+         */
+        $target = $request->attributes->get(self::VARIABLE_NAME);
+
+        $this->assertInstanceOf(PreSetEventDefinedClass::class, $target);
+        // We set this value in fixture class
+        $this->assertSame($target->testProperty, 'testValue');
+    }
+
+    public function testPostSetEventDefinedClass()
+    {
+        $request = new Request([], [ 'testProperty' => 'test' ]);
+        $configuration = $this->createConfiguration(
+            PostSetEventDefinedClass::class,
+            self::VARIABLE_NAME
+        );
+
+        $this->converter->apply($request, $configuration);
+        /**
+         * @var PostSetEventDefinedClass|null $target
+         */
+        $target = $request->attributes->get(self::VARIABLE_NAME);
+
+        $this->assertInstanceOf(PostSetEventDefinedClass::class, $target);
+        // We sent it text, but we transformed this value into an array
+        $this->assertSame($target->testProperty, [ 'test' ]);
     }
 
     /**

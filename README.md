@@ -71,7 +71,7 @@ Property annotation example:
     )
 
 
-Available annotation options
+Available property annotation options
 ===========================
 The converter will try to resolve all the things automatically with defaults but you can configure below parameters using the `Metglobal\Compass\Annotation\DTO\Parameter` annotation and also if you do not define this annotation to property it'll try to resolve the itself too.
 
@@ -148,12 +148,26 @@ class DummyRequest implements Request
 In above class, the `$xyzProperty` will inject from `query` scope and the `$abcProperty` will inject from query with
 integer type cast.
 
+Life cycle events
+=================
+
+\Metglobal\DTOBundle\Annotation\PreSet:
+---------------------------------------
+
+Defining this annotation onto methods allows you to access properties **before** setting the request parameters into target class.
+
+\Metglobal\DTOBundle\Annotation\PostSet:
+---------------------------------------
+
+Defining this annotation onto methods allows you to access properties **after** setting the request parameters into target class.
+
 The `\Metglobal\DTOBundle\CallableRequest` interface
 ======================================================
 You should inject all the simple parameters using above configurations with the `@Metglobal\Compass\Annotation\DTO\Parameter` annotation but if there is a complex logic that the annotation can not handle you can use this interface as callback method.
 
 In `call()` method you can modify the object's properties using `...$args` variables.
-**Tip:** If you dont know what does `...$args` mean see the RFC: https://wiki.php.net/rfc/argument_unpacking.
+**Tip 1:** Recommended way to hand basic processes is using the life cycle events. Only use this interface if you need to inject anything into target class. 
+**Tip 2:** If you dont know what does `...$args` mean see the RFC: https://wiki.php.net/rfc/argument_unpacking.
 
 Example usage:
 --------------
