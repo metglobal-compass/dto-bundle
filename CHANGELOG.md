@@ -1,3 +1,10 @@
+## 0.2.0 (June 04, 2020)
+  - Life cycle events added.
+  - Comment fix
+  - PSR12 fix commited
+  - Travis.yml added
+  - Fix README.md
+
 ## 0.1.1 (April 28, 2020)
   - Namespace changed
   - README typo fixed
