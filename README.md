@@ -201,7 +201,8 @@ class DummyController extends Controller
 namespace Metglobal\Compass\Request;
 
 use Metglobal\DTOBundle\Annotation\Parameter;
-use Metglobal\DTOBundle\Annotation\PreSet;use Metglobal\DTOBundle\CallableRequest;
+use Metglobal\DTOBundle\Annotation\PreSet;
+use Metglobal\DTOBundle\CallableRequest;
 
 /**
  * @Parameter(scope="query")
@@ -209,23 +210,21 @@ use Metglobal\DTOBundle\Annotation\PreSet;use Metglobal\DTOBundle\CallableReques
 class DummyRequest implements CallableRequest
 {
   /**
-   * @Parameter(
-   *     type="int" *
-   * )
+   * @Parameter(type="int")
    * 
    * @var int
    */
-   public $xyzProperty;
+   public $foo;
 
-   public $abcProperty;
+   public $bar;
 
-   public $qweProperty;
+   public $baz;
 
    public function call(...$args)
    {
        [ $xService, $yService ] = $args;
 
-        $this->xyzProperty = $xService->aMethod($yService->bMethod($this->xyzProperty));
+        $this->foo = $xService->aMethod($yService->bMethod($this->foo));
    }
 
    /**
@@ -234,7 +233,7 @@ class DummyRequest implements CallableRequest
     * @PreSet()
     */
    public function preSetXMethod(){
-       $this->qweProperty = 1;
+       $this->baz = 1;
    }
 
    /**
@@ -243,7 +242,7 @@ class DummyRequest implements CallableRequest
     * @PostSet()
     */
    public function postSetXMethod(){
-       $this->qweProperty = 5;
+       $this->baz = 5;
    }
 }
 ```
