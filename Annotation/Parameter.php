@@ -6,28 +6,22 @@ namespace Metglobal\DTOBundle\Annotation;
  * @Annotation
  * @Target({"PROPERTY", "CLASS"})
  */
-final class Parameter
+final class Parameter implements ParameterInterface
 {
     /**
      * NOTE: Trying to convert array to any type is invalid
-     * You can convert primitive types and string
+     * You can convert the data into primitive types and string
      *
      * @var string
      */
     public $type;
     
-    /**
-     * @var string
-     */
+    /** @var string */
     public $scope;
 
-    /**
-     * @var string
-     */
+    /** @var string */
     public $path;
 
-    /**
-     * @var boolean
-     */
+    /** @var boolean */
     public $disabled;
 }
