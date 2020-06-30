@@ -6,6 +6,7 @@ use Doctrine\Common\Annotations\AnnotationReader;
 use Metglobal\DTOBundle\DTOParamConverter;
 use Metglobal\DTOBundle\Tests\Fixtures\CallableMethodDefinedClass;
 use Metglobal\DTOBundle\Tests\Fixtures\ClassPropertyDefinedClass;
+use Metglobal\DTOBundle\Tests\Fixtures\DateParameterDefinedClass;
 use Metglobal\DTOBundle\Tests\Fixtures\NotSupportedClass;
 use Metglobal\DTOBundle\Tests\Fixtures\PostSetEventDefinedClass;
 use Metglobal\DTOBundle\Tests\Fixtures\PreSetEventDefinedClass;
@@ -370,5 +371,77 @@ class DTOParamConverterTest extends TestCase
         $request = new Request();
         $request->headers->set('testHeaderProperty', '5');
         $this->assertDefinition($request, 'testHeaderProperty', '5');
+    }
+
+    private function assertDateDefinition(Request $request, string $propertyName, \DateTime $actualValue)
+    {
+        $configuration = $this->createConfiguration(DateParameterDefinedClass::class, self::VARIABLE_NAME);
+        $this->converter->apply($request, $configuration);
+
+        /** @var DateParameterDefinedClass|null $target */
+        $target = $request->attributes->get(self::VARIABLE_NAME);
+        $this->assertInstanceOf(DateParameterDefinedClass::class, $target);
+        $this->assertInstanceOf(\DateTime::class, $target->$propertyName);
+
+        /** @var \DateTime $computedDate */
+        $computedDate = $target->$propertyName;
+
+        $this->assertSame($computedDate->getTimestamp(), $actualValue->getTimestamp());
+        $this->assertSame($computedDate->getTimezone()->getName(), $actualValue->getTimezone()->getName());
+    }
+
+    public function testSimpleDateDefinition()
+    {
+        $date = new \DateTime();
+        $request = new Request([], ['testProperty' => $date->format('Y-m-d H:i:s')]);
+        $this->assertDateDefinition(
+            $request,
+            'testProperty',
+            $date
+        );
+    }
+
+    public function testScopeDateDefinition()
+    {
+        $date = new \DateTime();
+        $request = new Request(['testScopeProperty' => $date->format('Y-m-d H:i:s')]);
+        $this->assertDateDefinition(
+            $request,
+            'testScopeProperty',
+            $date
+        );
+    }
+
+    public function testPathDateDefinition()
+    {
+        $date = new \DateTime();
+        $request = new Request([], ['testConfiguredPath' => $date->format('Y-m-d H:i:s')]);
+        $this->assertDateDefinition(
+            $request,
+            'testPathProperty',
+            $date
+        );
+    }
+
+    public function testFormatDateDefinition()
+    {
+        $date = new \DateTime();
+        $request = new Request([], ['testFormatProperty' => $date->format('m.d.Y')]);
+        $this->assertDateDefinition(
+            $request,
+            'testFormatProperty',
+            $date
+        );
+    }
+
+    public function testTimeZoneDateDefinition()
+    {
+        $date = new \DateTime('now', new \DateTimeZone('Europe/London'));
+        $request = new Request([], ['testTimezone' => $date->format('Y-m-d H:i:s')]);
+        $this->assertDateDefinition(
+            $request,
+            'testTimezone',
+            $date
+        );
     }
 }

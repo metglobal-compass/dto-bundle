@@ -3,10 +3,14 @@
 namespace Metglobal\DTOBundle;
 
 use Doctrine\Common\Annotations\Reader;
+use Metglobal\DTOBundle\Annotation\DateParameter;
 use Metglobal\DTOBundle\Annotation\Parameter;
+use Metglobal\DTOBundle\Annotation\ParameterInterface;
 use Metglobal\DTOBundle\Annotation\PostSet;
 use Metglobal\DTOBundle\Annotation\PreSet;
 use Metglobal\DTOBundle\Exception\DTOException;
+use Metglobal\DTOBundle\OptionsResolver\DateParameterOptionsResolver;
+use Metglobal\DTOBundle\OptionsResolver\ParameterOptionsResolver;
 use Metglobal\DTOBundle\Request as RequestDTO;
 use ReflectionClass;
 use ReflectionException;
@@ -37,10 +41,18 @@ final class DTOParamConverter implements ParamConverterInterface
     /** @var Reader */
     protected $annotationReader;
 
+    /** @var ParameterOptionsResolver */
+    protected $parameterOptionsResolver;
+
+    /** @var DateParameterOptionsResolver */
+    protected $dateParameterOptionsResolver;
+
     public function __construct(PropertyAccessorInterface $propertyAccessor, Reader $annotationReader)
     {
         $this->propertyAccessor = $propertyAccessor;
         $this->annotationReader = $annotationReader;
+        $this->parameterOptionsResolver = new ParameterOptionsResolver();
+        $this->dateParameterOptionsResolver = new DateParameterOptionsResolver();
     }
 
     public function apply(Request $request, ParamConverter $configuration)
@@ -57,9 +69,18 @@ final class DTOParamConverter implements ParamConverterInterface
                 $value = $this->getValue(
                     $request,
                     $parameterOptions[self::PROPERTY_OPTION_SCOPE],
-                    $parameterOptions[self::PROPERTY_OPTION_PATH],
-                    $parameterOptions[self::PROPERTY_OPTION_TYPE]
+                    $parameterOptions[self::PROPERTY_OPTION_PATH]
                 );
+
+                if ($parameterOptions[self::PROPERTY_OPTION_TYPE] === 'date') {
+                    $value = $this->castToDate(
+                        $value,
+                        $parameterOptions[DateParameterOptionsResolver::PROPERTY_OPTION_FORMAT],
+                        $parameterOptions[DateParameterOptionsResolver::PROPERTY_OPTION_TIMEZONE]
+                    );
+                } else {
+                    $value = $this->castValue($value, $parameterOptions[self::PROPERTY_OPTION_TYPE]);
+                }
 
                 if ($value !== null || ($value === null && $parameterOptions[self::PROPERTY_OPTION_NULLABLE] === true)) {
                     $this->propertyAccessor->setValue($instance, $parameter, $value);
@@ -87,28 +108,6 @@ final class DTOParamConverter implements ParamConverterInterface
         }
     }
 
-    protected function getParameterOptionsResolver(): OptionsResolver
-    {
-        $resolver = new OptionsResolver();
-
-        $resolver->setDefaults(
-            [
-                self::PROPERTY_OPTION_TYPE => self::DEFAULT_OPTION_TYPE,
-                self::PROPERTY_OPTION_SCOPE => self::DEFAULT_OPTION_SCOPE,
-                self::PROPERTY_OPTION_NULLABLE => self::DEFAULT_OPTION_NULLABLE,
-                self::PROPERTY_OPTION_DISABLED => self::DEFAULT_OPTION_DISABLED,
-            ]
-        );
-
-        $resolver->setAllowedTypes(self::PROPERTY_OPTION_NULLABLE, ['boolean', 'null']);
-        $resolver->setAllowedTypes(self::PROPERTY_OPTION_DISABLED, ['boolean', 'null']);
-        $resolver->setAllowedValues(self::PROPERTY_OPTION_TYPE, ['string', 'boolean', 'integer', 'int', null]);
-        $resolver->setAllowedValues(self::PROPERTY_OPTION_SCOPE, ['request', 'query', 'headers', 'attributes', null]);
-        $resolver->setRequired([self::PROPERTY_OPTION_PATH]);
-
-        return $resolver;
-    }
-
     /**
      * @param RequestDTO $dto
      * @return array
@@ -116,8 +115,6 @@ final class DTOParamConverter implements ParamConverterInterface
      */
     protected function getProperties(RequestDTO $dto, ReflectionClass $reflectionClass): array
     {
-        $parameterOptionsResolver = $this->getParameterOptionsResolver();
-
         $summary = [];
         $classAnnotationParameters = $this->readClassAnnotationParameters($reflectionClass);
         foreach ($reflectionClass->getProperties() as $reflectionProperty) {
@@ -131,8 +128,8 @@ final class DTOParamConverter implements ParamConverterInterface
 
             $propertyAnnotation = $this->readPropertyAnnotation($reflectionProperty);
 
-            if ($propertyAnnotation instanceof Parameter) {
-                if ($propertyAnnotation->disabled === true) {
+            if ($propertyAnnotation instanceof ParameterInterface) {
+                if ($propertyAnnotation instanceof Parameter && $propertyAnnotation->disabled === true) {
                     // Do not inject parameter
                     continue;
                 }
@@ -154,7 +151,11 @@ final class DTOParamConverter implements ParamConverterInterface
 
             // This code (array_replace(...$parameters)) is working like waterfall
             // Every element overrides its previous element
-            $summary[$propertyName] = $parameterOptionsResolver->resolve(array_replace(...$parameters));
+            if ($propertyAnnotation instanceof DateParameter) {
+                $summary[$propertyName] = $this->dateParameterOptionsResolver->resolve(array_replace(...$parameters));
+            } else {
+                $summary[$propertyName] = $this->parameterOptionsResolver->resolve(array_replace(...$parameters));
+            }
         }
 
         return $summary;
@@ -163,9 +164,9 @@ final class DTOParamConverter implements ParamConverterInterface
     protected function readClassAnnotationParameters(ReflectionClass $class): array
     {
         /**
-         * @var Parameter|null $annotation
+         * @var ParameterInterface|null $annotation
          */
-        $annotation = $this->annotationReader->getClassAnnotation($class, Parameter::class);
+        $annotation = $this->annotationReader->getClassAnnotation($class, ParameterInterface::class);
 
         if ($annotation === null) {
             return [];
@@ -184,31 +185,41 @@ final class DTOParamConverter implements ParamConverterInterface
 
     /**
      * @param ReflectionProperty $property
-     * @return object|Parameter|null
+     * @return object|ParameterInterface|null
      */
     protected function readPropertyAnnotation(ReflectionProperty $property)
     {
-        return $this->annotationReader->getPropertyAnnotation($property, Parameter::class);
+        return $this->annotationReader->getPropertyAnnotation($property, ParameterInterface::class);
     }
 
-    protected function readPropertyAnnotationParameters(Parameter $annotation, ReflectionProperty $property): array
+    protected function readPropertyAnnotationParameters(ParameterInterface $annotation, ReflectionProperty $property): array
     {
+        $options = [
+            self::PROPERTY_OPTION_SCOPE => $annotation->scope,
+            self::PROPERTY_OPTION_PATH => $annotation->path ?? $property->getName(),
+            self::PROPERTY_OPTION_TYPE => $annotation->type,
+            self::PROPERTY_OPTION_DISABLED => $annotation->disabled
+        ];
+
+        if ($options[self::PROPERTY_OPTION_TYPE] === 'date') {
+            $options[DateParameterOptionsResolver::PROPERTY_OPTION_FORMAT] = $annotation->format;
+            $options[DateParameterOptionsResolver::PROPERTY_OPTION_TIMEZONE] = $annotation->timezone;
+        }
+
         // We're filtering the options, because the null
         // values are overriding the parent configurations
-        return $this->filterOptions(
-            [
-                self::PROPERTY_OPTION_TYPE => $annotation->type,
-                self::PROPERTY_OPTION_SCOPE => $annotation->scope,
-                self::PROPERTY_OPTION_DISABLED => $annotation->disabled,
-                self::PROPERTY_OPTION_PATH => $annotation->path ?? $property->getName(),
-            ]
-        );
+        return $this->filterOptions($options);
     }
 
-    protected function getValue(Request $request, string $scope, string $path, string $typeCast)
+    protected function getValue(Request $request, string $scope, string $path)
     {
         $value = $this->propertyAccessor->getValue($request->{$scope}->all(), $this->normalizePath($path, $scope));
 
+        return $value;
+    }
+
+    protected function castValue($value, string $typeCast)
+    {
         // Boolean type is exception
         // They are not nullable fields
         // Because of the definition of \Symfony\Component\HttpFoundation\ParameterBag::getBoolean
@@ -235,6 +246,19 @@ final class DTOParamConverter implements ParamConverterInterface
         }
 
         return $value;
+    }
+
+    protected function castToDate($date, string $format, $timezone)
+    {
+        if ($date === null) {
+            return null;
+        }
+
+        if ($timezone) {
+            return \DateTime::createFromFormat($format, $date, new \DateTimeZone($timezone));
+        }
+
+        return \DateTime::createFromFormat($format, $date);
     }
 
     protected function normalizePath(string $path, string $scope): string
