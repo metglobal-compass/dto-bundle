@@ -56,11 +56,21 @@ Define a controller method parameter with type hint. The type hint must be insta
 
 See: `\Metglobal\DTOBundle\DTOParamConverter::supports`.
 
-Default parameter resolver parameters (see: `\Metglobal\DTOBundle\DTOParamConverter::getParameterOptionsResolver`):
+Default parameter resolver parameters (see: `\Metglobal\DTOBundle\OptionsResolver\ParameterOptionsResolver`, `\Metglobal\DTOBundle\OptionsResolver\DateParameterOptionsResolver`):
 
     [ 'type' => 'string', 'scope' => 'request', 'disabled' => false, 'nullable' => true ]
 
 Property annotation example: 
+
+    @Metglobal\Compass\Annotation\DTO\DateParameter(
+        type="string",
+        scope="request",
+        path="pathOfThisParameter",
+        nullable=false,
+        disabled=false,
+        format="Y-m-d H:i:s",
+        timezone="Europe/Istanbul"
+    )
 
     @Metglobal\Compass\Annotation\DTO\Parameter(
         type="string",
@@ -109,6 +119,14 @@ Defined property can be nullable or not.
 disabled:
 --------
 Disable injection for selected parameter.
+
+format:
+--------
+Available when you use `\Metglobal\DTOBundle\OptionsResolver\DateParameterOptionsResolver`. You can configure input datetime's format with this property.
+
+timezone:
+--------
+Available when you use `\Metglobal\DTOBundle\OptionsResolver\DateParameterOptionsResolver`. You can configure datetime's timezone with this property.
 
 Extra annotation tips
 =====================
@@ -161,7 +179,7 @@ Defining this annotation onto methods allows you to access properties **before**
 
 Defining this annotation onto methods allows you to access properties **after** setting the request parameters into target class.
 
-The `\Metglobal\DTOBundle\CallableRequest` interface
+The \Metglobal\DTOBundle\CallableRequest interface
 ======================================================
 You should inject all the simple parameters using above configurations with the `@Metglobal\Compass\Annotation\DTO\Parameter` annotation but if there is a complex logic that the annotation can not handle you can use this interface as callback method.
 
@@ -200,7 +218,7 @@ class DummyController extends Controller
 <?php
 namespace Metglobal\Compass\Request;
 
-use Metglobal\DTOBundle\Annotation\Parameter;
+use Metglobal\DTOBundle\Annotation\DateParameter;use Metglobal\DTOBundle\Annotation\Parameter;
 use Metglobal\DTOBundle\Annotation\PreSet;
 use Metglobal\DTOBundle\CallableRequest;
 
@@ -219,6 +237,13 @@ class DummyRequest implements CallableRequest
    public $bar;
 
    public $baz;
+
+   /**
+    * @var \DateTime|null
+    * 
+    * @DateParameter(format="Y-m-d") 
+    */
+   public $fooBar;
 
    public function call(...$args)
    {
