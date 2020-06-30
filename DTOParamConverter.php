@@ -97,7 +97,7 @@ final class DTOParamConverter implements ParamConverterInterface
 
     protected function callEvent(ReflectionClass $reflectionClass, RequestDTO $instance, string $eventClass)
     {
-        foreach ($reflectionClass->getMethods( \ReflectionMethod::IS_PUBLIC) as $reflectionMethod) {
+        foreach ($reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $reflectionMethod) {
             $annotation = $this->annotationReader->getMethodAnnotation($reflectionMethod, $eventClass);
 
             if ($annotation === null) {
