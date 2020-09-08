@@ -81,4 +81,25 @@ class PropertyDefinedClass implements Request
      * @var string
      */
     public $testHeaderProperty;
+
+    /**
+     * @Parameter(type="date")
+     * 
+     * @var \DateTime
+     */
+    public $testDateProperty;
+    
+    /**
+     * @Parameter(type="date", options={"format": "m.d.Y"})
+     * 
+     * @var \DateTime
+     */
+    public $testDateWithFormatProperty;
+    
+    /**
+     * @Parameter(type="date", options={"timezone": "Europe/London"})
+     * 
+     * @var \DateTime
+     */
+    public $testDateWithTimeZoneProperty;
 }

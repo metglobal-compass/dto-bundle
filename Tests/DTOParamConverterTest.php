@@ -6,7 +6,6 @@ use Doctrine\Common\Annotations\AnnotationReader;
 use Metglobal\DTOBundle\DTOParamConverter;
 use Metglobal\DTOBundle\Tests\Fixtures\CallableMethodDefinedClass;
 use Metglobal\DTOBundle\Tests\Fixtures\ClassPropertyDefinedClass;
-use Metglobal\DTOBundle\Tests\Fixtures\DateParameterDefinedClass;
 use Metglobal\DTOBundle\Tests\Fixtures\NotSupportedClass;
 use Metglobal\DTOBundle\Tests\Fixtures\PostSetEventDefinedClass;
 use Metglobal\DTOBundle\Tests\Fixtures\PreSetEventDefinedClass;
@@ -375,12 +374,12 @@ class DTOParamConverterTest extends TestCase
 
     private function assertDateDefinition(Request $request, string $propertyName, \DateTime $actualValue)
     {
-        $configuration = $this->createConfiguration(DateParameterDefinedClass::class, self::VARIABLE_NAME);
+        $configuration = $this->createConfiguration(PropertyDefinedClass::class, self::VARIABLE_NAME);
         $this->converter->apply($request, $configuration);
 
-        /** @var DateParameterDefinedClass|null $target */
+        /** @var PropertyDefinedClass|null $target */
         $target = $request->attributes->get(self::VARIABLE_NAME);
-        $this->assertInstanceOf(DateParameterDefinedClass::class, $target);
+        $this->assertInstanceOf(PropertyDefinedClass::class, $target);
         $this->assertInstanceOf(\DateTime::class, $target->$propertyName);
 
         /** @var \DateTime $computedDate */
@@ -390,35 +389,43 @@ class DTOParamConverterTest extends TestCase
         $this->assertSame($computedDate->getTimezone()->getName(), $actualValue->getTimezone()->getName());
     }
 
+    private function assertNullDateDefinition(Request $request, string $propertyName)
+    {
+        $configuration = $this->createConfiguration(PropertyDefinedClass::class, self::VARIABLE_NAME);
+        $this->converter->apply($request, $configuration);
+
+        /** @var PropertyDefinedClass|null $target */
+        $target = $request->attributes->get(self::VARIABLE_NAME);
+        $this->assertInstanceOf(PropertyDefinedClass::class, $target);
+        $this->assertNull($target->$propertyName);
+
+    }
+
+    public function testNullDateDefinition()
+    {
+        $request = new Request([]);
+        $this->assertNullDateDefinition(
+            $request,
+            'testDateProperty'
+        );
+    }
+
+    public function testNullDefinedDateDefinition()
+    {
+        $request = new Request([], ['testDateProperty' => null]);
+        $this->assertNullDateDefinition(
+            $request,
+            'testDateProperty'
+        );
+    }
+
     public function testSimpleDateDefinition()
     {
         $date = new \DateTime();
-        $request = new Request([], ['testProperty' => $date->format('Y-m-d H:i:s')]);
+        $request = new Request([], ['testDateProperty' => $date->format('Y-m-d H:i:s')]);
         $this->assertDateDefinition(
             $request,
-            'testProperty',
-            $date
-        );
-    }
-
-    public function testScopeDateDefinition()
-    {
-        $date = new \DateTime();
-        $request = new Request(['testScopeProperty' => $date->format('Y-m-d H:i:s')]);
-        $this->assertDateDefinition(
-            $request,
-            'testScopeProperty',
-            $date
-        );
-    }
-
-    public function testPathDateDefinition()
-    {
-        $date = new \DateTime();
-        $request = new Request([], ['testConfiguredPath' => $date->format('Y-m-d H:i:s')]);
-        $this->assertDateDefinition(
-            $request,
-            'testPathProperty',
+            'testDateProperty',
             $date
         );
     }
@@ -426,10 +433,10 @@ class DTOParamConverterTest extends TestCase
     public function testFormatDateDefinition()
     {
         $date = new \DateTime();
-        $request = new Request([], ['testFormatProperty' => $date->format('m.d.Y')]);
+        $request = new Request([], ['testDateWithFormatProperty' => $date->format('m.d.Y')]);
         $this->assertDateDefinition(
             $request,
-            'testFormatProperty',
+            'testDateWithFormatProperty',
             $date
         );
     }
@@ -437,10 +444,10 @@ class DTOParamConverterTest extends TestCase
     public function testTimeZoneDateDefinition()
     {
         $date = new \DateTime('now', new \DateTimeZone('Europe/London'));
-        $request = new Request([], ['testTimezone' => $date->format('Y-m-d H:i:s')]);
+        $request = new Request([], ['testDateWithTimeZoneProperty' => $date->format('Y-m-d H:i:s')]);
         $this->assertDateDefinition(
             $request,
-            'testTimezone',
+            'testDateWithTimeZoneProperty',
             $date
         );
     }

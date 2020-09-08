@@ -24,4 +24,7 @@ final class Parameter implements ParameterInterface
 
     /** @var boolean */
     public $disabled;
+
+    /** @var array */
+    public $options = [];
 }
