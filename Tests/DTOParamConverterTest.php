@@ -267,6 +267,32 @@ class DTOParamConverterTest extends TestCase
         $this->assertDefinition($request, 'testTypeProperty', 1);
     }
 
+    public function floatDataProvider(): array
+    {
+        return [
+            [
+                5.30,
+                5.30
+            ],
+            [
+                '5.30',
+                5.30
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider floatDataProvider
+     *
+     * @param array $data
+     * @param bool $sameWith
+     */
+    public function testFloatTypeDefinition($data, $sameWith)
+    {
+        $request = new Request([], [ 'testFloatProperty' => $data ]);
+        $this->assertDefinition($request, 'testFloatProperty', $sameWith);
+    }
+
     public function booleanDataProvider(): array
     {
         return [

@@ -69,6 +69,13 @@ class PropertyDefinedClass implements Request
     public $testBooleanWithDefaultProperty = true;
 
     /**
+     * @Parameter(type="float")
+     *
+     * @var boolean
+     */
+    public $testFloatProperty;
+
+    /**
      * @Parameter(disabled=true)
      *
      * @var boolean

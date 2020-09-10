@@ -10,7 +10,7 @@ final class Parameter implements ParameterInterface
 {
     /**
      * NOTE: Trying to convert array to any type is invalid
-     * You can convert the data into primitive types and string
+     * You can convert the data into primitive types
      *
      * @var string
      */

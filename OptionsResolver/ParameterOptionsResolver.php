@@ -18,23 +18,28 @@ class ParameterOptionsResolver extends \Symfony\Component\OptionsResolver\Option
             ]
         );
         $this->setAllowedTypes(
-            DTOParamConverter::PROPERTY_OPTION_NULLABLE, ['boolean', 'null']
+            DTOParamConverter::PROPERTY_OPTION_NULLABLE,
+            ['boolean', 'null']
         );
         
         $this->setAllowedTypes(
-            DTOParamConverter::PROPERTY_OPTION_DISABLED, ['boolean', 'null']
+            DTOParamConverter::PROPERTY_OPTION_DISABLED,
+            ['boolean', 'null']
         );
         
         $this->setAllowedTypes(
-            DTOParamConverter::PROPERTY_OPTION_OPTIONS, ['array']
+            DTOParamConverter::PROPERTY_OPTION_OPTIONS,
+            ['array']
         );
         
         $this->setAllowedValues(
-            DTOParamConverter::PROPERTY_OPTION_TYPE, ['date', 'string', 'boolean', 'integer', 'int', null]
+            DTOParamConverter::PROPERTY_OPTION_TYPE,
+            ['date', 'float', 'string', 'boolean', 'integer', 'int', null]
         );
         
         $this->setAllowedValues(
-            DTOParamConverter::PROPERTY_OPTION_SCOPE, ['request', 'query', 'headers', 'attributes', null]
+            DTOParamConverter::PROPERTY_OPTION_SCOPE,
+            ['request', 'query', 'headers', 'attributes', null]
         );
 
         $this->setRequired([DTOParamConverter::PROPERTY_OPTION_PATH]);
