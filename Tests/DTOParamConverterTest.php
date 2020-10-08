@@ -267,6 +267,12 @@ class DTOParamConverterTest extends TestCase
         $this->assertDefinition($request, 'testTypeProperty', 1);
     }
 
+    public function testMixedTypeDefinition()
+    {
+        $request = new Request([], [ 'testMixedPath' => 1 ]);
+        $this->assertDefinition($request, 'testMixedPath', 1);
+    }
+
     public function floatDataProvider(): array
     {
         return [
@@ -337,6 +343,18 @@ class DTOParamConverterTest extends TestCase
     {
         $request = new Request([], [ 'testBooleanProperty' => $data ]);
         $this->assertDefinition($request, 'testBooleanProperty', $sameWith);
+    }
+
+    /**
+     * @dataProvider booleanDataProvider
+     *
+     * @param array $data
+     * @param bool $sameWith
+     */
+    public function testBoolTypeDefinition($data, $sameWith)
+    {
+        $request = new Request([], [ 'testBoolProperty' => $data ]);
+        $this->assertDefinition($request, 'testBoolProperty', $sameWith);
     }
 
     public function booleanWithDefaultValueDataProvider(): array
