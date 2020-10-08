@@ -1,3 +1,11 @@
+## 0.3.0 (October 08, 2020)
+  - Mixed type support added and 'bool' type alias added to allowed types.
+  - Float type support added to Parameter annotation.
+  - Option property added into @Parameter annotation.
+  - README.md updated
+  - DateParameter support added.
+  - Minor fixes applied
+
 ## 0.2.0 (June 04, 2020)
   - Life cycle events added.
   - Comment fix
