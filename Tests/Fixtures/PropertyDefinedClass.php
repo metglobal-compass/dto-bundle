@@ -55,11 +55,25 @@ class PropertyDefinedClass implements Request
     public $testTypeProperty;
 
     /**
+     * @Parameter(type="mixed")
+     *
+     * @var mixed
+     */
+    public $testMixedPath;
+
+    /**
      * @Parameter(type="boolean")
      *
      * @var boolean
      */
     public $testBooleanProperty;
+
+    /**
+     * @Parameter(type="bool")
+     *
+     * @var boolean
+     */
+    public $testBoolProperty;
 
     /**
      * @Parameter(type="boolean")

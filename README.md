@@ -78,9 +78,9 @@ The converter will try to resolve all the things automatically with defaults but
 
 type:
 ----
-Variable's type. Available types are: 'string', 'boolean', 'integer', 'int'.
+Variable's type. Available types are: 'string', 'boolean', 'bool', 'integer', 'int' and 'mixed'. Mixed type allows you to apply any type of value into property.
 
-**Warning:** boolean type is not nullable field because of the definition: `\Symfony\Component\HttpFoundation\ParameterBag::getBoolean`. It'll set false into variable in case of null.
+**Warning:** boolean type is exceptional see: `\Symfony\Component\HttpFoundation\ParameterBag::getBoolean`. 
 
 scope:
 -----

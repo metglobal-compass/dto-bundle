@@ -76,6 +76,23 @@ final class DTOParamConverter implements ParamConverterInterface
 
             return \DateTime::createFromFormat($format, $date);
         };
+
+        $this->castCallbacks['mixed'] = function ($value, array $parameters) {
+            // Mixed types are not applies any casting
+            return $value;
+        };
+
+        $booleanCastCallback = function ($value, array $parameters) {
+            /**
+             * Boolean type is exceptional
+             *
+             * @See: https://www.w3schools.com/php/filter_validate_boolean.asp
+             */
+            return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+        };
+
+        $this->castCallbacks['bool'] = $booleanCastCallback;
+        $this->castCallbacks['boolean'] = $booleanCastCallback;
     }
 
     public function apply(Request $request, ParamConverter $configuration)
@@ -236,37 +253,26 @@ final class DTOParamConverter implements ParamConverterInterface
 
     protected function castValue($value, array $parameters)
     {
-        // If any callable binded to this type
-        if (isset($this->castCallbacks[$parameters[self::PROPERTY_OPTION_TYPE]])) {
-            return call_user_func($this->castCallbacks[$parameters[self::PROPERTY_OPTION_TYPE]], $value, $parameters);
-        }
-
         $typeCast = $parameters[self::PROPERTY_OPTION_TYPE];
 
-        // Boolean type is exception
-        // They are not nullable fields
-        // Because of the definition of \Symfony\Component\HttpFoundation\ParameterBag::getBoolean
-        if ($typeCast === 'boolean') {
-            /**
-             * We must return null if user did not send value
-             * instead of false
-             */
-            if ($value === null) {
-                return null;
-            }
+        if ($value === null) {
+            return $value;
+        }
 
-            /**
-             * @See: https://www.w3schools.com/php/filter_validate_boolean.asp
-             */
-            return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+        // If any callable binded to this type
+        if (isset($this->castCallbacks[$typeCast])) {
+            return call_user_func($this->castCallbacks[$typeCast], $value, $parameters);
+        }
+
+        if (is_array($value)) {
+            return $value;
         }
 
         // If we apply typecast into null int returns 0, string returns "", bool returns false
         // It can be crash the application, to prevent this kind of circumstances we're checking the value is null or not
-        if ($value !== null && is_array($value) === false) {
-            // Apply type cast
-            settype($value, $typeCast);
-        }
+
+        // Apply type cast
+        settype($value, $typeCast);
 
         return $value;
     }

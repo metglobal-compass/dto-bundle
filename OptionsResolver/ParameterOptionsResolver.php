@@ -34,7 +34,7 @@ class ParameterOptionsResolver extends \Symfony\Component\OptionsResolver\Option
         
         $this->setAllowedValues(
             DTOParamConverter::PROPERTY_OPTION_TYPE,
-            ['date', 'float', 'string', 'boolean', 'integer', 'int', null]
+            ['date', 'float', 'string', 'boolean', 'bool', 'integer', 'int', 'mixed', null]
         );
         
         $this->setAllowedValues(
