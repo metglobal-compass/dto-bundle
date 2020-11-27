@@ -58,7 +58,7 @@ See: `\Metglobal\DTOBundle\DTOParamConverter::supports`.
 
 Default parameter resolver parameters (see: `\Metglobal\DTOBundle\OptionsResolver\ParameterOptionsResolver`, `\Metglobal\DTOBundle\OptionsResolver\DateParameterOptionsResolver`):
 
-    [ 'type' => 'string', 'scope' => 'request', 'disabled' => false, 'nullable' => true, 'options' => [] ]
+    [ 'type' => 'string', 'scope' => 'request', 'disabled' => false, 'nullable' => true, 'options' => [], undefinedable=false ]
 
 Property annotation example: 
 
@@ -68,7 +68,8 @@ Property annotation example:
         path="pathOfThisParameter",
         nullable=false,
         disabled=false,
-        options={}
+        options={},
+        undefinedable=false
     )
 
 
@@ -121,6 +122,33 @@ options:
     timezone:
     --------
     Available when you set type to date. You can configure datetime's timezone with this property.
+undefinedable:
+--------------
+Make property undefinedable. This property makes you able to find undefined properties.
+Example:
+
+```php
+namespace Metglobal\Compass\Request;
+
+use Metglobal\DTOBundle\Annotation\Parameter;
+use Metglobal\DTOBundle\Request;
+use Metglobal\DTOBundle\Undefined;
+
+class DummyRequest implements Request
+{
+    /**
+    * @Parameter(scope="query", undefinedable=true)
+    *
+    * @var string|Undefined
+    */
+    public $xyzProperty;
+}
+```
+Results would be:
+
+| ?xyzProperty= | ?xyzProperty=dto | ?otherProperty=5 |
+|---------------|------------------| ---------------- |
+| null          | "dto"            | Undefined()      |
 
 Extra annotation tips
 =====================

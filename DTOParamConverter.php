@@ -30,12 +30,14 @@ final class DTOParamConverter implements ParamConverterInterface
     const PROPERTY_OPTION_NULLABLE = 'nullable';
     const PROPERTY_OPTION_DISABLED = 'disabled';
     const PROPERTY_OPTION_OPTIONS = 'options';
+    const PROPERTY_OPTION_UNDEFINEDABLE = 'undefinedable';
 
     const DEFAULT_OPTION_TYPE = 'string';
     const DEFAULT_OPTION_SCOPE = 'request';
     const DEFAULT_OPTION_NULLABLE = true;
     const DEFAULT_OPTION_DISABLED = false;
     const DEFAULT_OPTION_OPTIONS = [];
+    const DEFAULT_OPTION_UNDEFINEDABLE = false;
 
     /** @var PropertyAccessorInterface */
     protected $propertyAccessor;
@@ -106,10 +108,24 @@ final class DTOParamConverter implements ParamConverterInterface
             $this->callEvent($reflectionClass, $instance, PreSet::class);
 
             foreach ($this->getProperties($instance, $reflectionClass) as $parameterName => $parameters) {
+                $scope = $parameters[self::PROPERTY_OPTION_SCOPE];
+                $path = $parameters[self::PROPERTY_OPTION_PATH];
+
+                // If parameter is defined as "undefinedable", means this parameter is not required in body/qs
+                // Set a new Undefined() instance into request
+                if (
+                    $parameters[self::PROPERTY_OPTION_UNDEFINEDABLE] === true
+                    && $this->isDefined($request, $scope, $path) === false
+                ) {
+                    $this->propertyAccessor->setValue($instance, $parameterName, new Undefined);
+
+                    continue;
+                }
+
                 $value = $this->getValue(
                     $request,
-                    $parameters[self::PROPERTY_OPTION_SCOPE],
-                    $parameters[self::PROPERTY_OPTION_PATH]
+                    $scope,
+                    $path
                 );
 
                 $value = $this->castValue($value, $parameters);
@@ -216,6 +232,7 @@ final class DTOParamConverter implements ParamConverterInterface
                 self::PROPERTY_OPTION_TYPE => $annotation->type,
                 self::PROPERTY_OPTION_SCOPE => $annotation->scope,
                 self::PROPERTY_OPTION_DISABLED => $annotation->disabled,
+                self::PROPERTY_OPTION_UNDEFINEDABLE => $annotation->undefinedable,
             ]
         );
     }
@@ -236,12 +253,18 @@ final class DTOParamConverter implements ParamConverterInterface
             self::PROPERTY_OPTION_PATH => $annotation->path ?? $property->getName(),
             self::PROPERTY_OPTION_TYPE => $annotation->type,
             self::PROPERTY_OPTION_DISABLED => $annotation->disabled,
-            self::PROPERTY_OPTION_OPTIONS => $annotation->options
+            self::PROPERTY_OPTION_OPTIONS => $annotation->options,
+            self::PROPERTY_OPTION_UNDEFINEDABLE => $annotation->undefinedable
         ];
 
         // We're filtering the options, because the null
         // values are overriding the parent configurations
         return $this->filterOptions($properties);
+    }
+
+    protected function isDefined(Request $request, string $scope, string $path)
+    {
+        return $request->{$scope}->has($path);
     }
 
     protected function getValue(Request $request, string $scope, string $path)
@@ -255,6 +278,8 @@ final class DTOParamConverter implements ParamConverterInterface
     {
         $typeCast = $parameters[self::PROPERTY_OPTION_TYPE];
 
+        // If we apply typecast into null int returns 0, string returns "", bool returns false
+        // It can be crash the application, to prevent this kind of circumstances we're checking the value is null or not
         if ($value === null) {
             return $value;
         }
@@ -267,9 +292,6 @@ final class DTOParamConverter implements ParamConverterInterface
         if (is_array($value)) {
             return $value;
         }
-
-        // If we apply typecast into null int returns 0, string returns "", bool returns false
-        // It can be crash the application, to prevent this kind of circumstances we're checking the value is null or not
 
         // Apply type cast
         settype($value, $typeCast);

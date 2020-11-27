@@ -11,6 +11,7 @@ use Metglobal\DTOBundle\Tests\Fixtures\PostSetEventDefinedClass;
 use Metglobal\DTOBundle\Tests\Fixtures\PreSetEventDefinedClass;
 use Metglobal\DTOBundle\Tests\Fixtures\PropertyDefinedClass;
 use Metglobal\DTOBundle\Tests\Fixtures\SimpleClass;
+use Metglobal\DTOBundle\Undefined;
 use PHPUnit\Framework\MockObject\MockObject;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use PHPUnit\Framework\TestCase;
@@ -197,6 +198,13 @@ class DTOParamConverterTest extends TestCase
          */
         $target = $request->attributes->get(self::VARIABLE_NAME);
         $this->assertInstanceOf(PropertyDefinedClass::class, $target);
+
+        if (is_object($actualValue)) {
+            $this->assertInstanceOf(get_class($target->$propertyName), new Undefined);
+
+            return;
+        }
+
         $this->assertSame($target->$propertyName, $actualValue);
     }
 
@@ -414,6 +422,18 @@ class DTOParamConverterTest extends TestCase
         $request = new Request();
         $request->headers->set('testHeaderProperty', '5');
         $this->assertDefinition($request, 'testHeaderProperty', '5');
+    }
+
+    public function testUndefinedableUndefinedValueDefinition()
+    {
+        $request = new Request();
+        $this->assertDefinition($request, 'testUndefinedableProperty', new Undefined);
+    }
+
+    public function testUndefinedableDefinedValueDefinition()
+    {
+        $request = new Request([], ['testUndefinedableProperty' => '1']);
+        $this->assertDefinition($request, 'testUndefinedableProperty', '1');
     }
 
     private function assertDateDefinition(Request $request, string $propertyName, \DateTime $actualValue)
