@@ -4,6 +4,7 @@ namespace Metglobal\DTOBundle\Tests\Fixtures;
 
 use Metglobal\DTOBundle\Annotation\Parameter;
 use Metglobal\DTOBundle\Request;
+use Metglobal\DTOBundle\Undefined;
 
 class PropertyDefinedClass implements Request
 {
@@ -123,4 +124,11 @@ class PropertyDefinedClass implements Request
      * @var \DateTime
      */
     public $testDateWithTimeZoneProperty;
+
+    /**
+     * @Parameter(undefinedable=true)
+     *
+     * @var string|Undefined
+     */
+    public $testUndefinedableProperty;
 }

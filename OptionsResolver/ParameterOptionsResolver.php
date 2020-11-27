@@ -15,8 +15,10 @@ class ParameterOptionsResolver extends \Symfony\Component\OptionsResolver\Option
                 DTOParamConverter::PROPERTY_OPTION_NULLABLE => DTOParamConverter::DEFAULT_OPTION_NULLABLE,
                 DTOParamConverter::PROPERTY_OPTION_DISABLED => DTOParamConverter::DEFAULT_OPTION_DISABLED,
                 DTOParamConverter::PROPERTY_OPTION_OPTIONS => DTOParamConverter::DEFAULT_OPTION_OPTIONS,
+                DTOParamConverter::PROPERTY_OPTION_UNDEFINEDABLE => DTOParamConverter::DEFAULT_OPTION_UNDEFINEDABLE,
             ]
         );
+
         $this->setAllowedTypes(
             DTOParamConverter::PROPERTY_OPTION_NULLABLE,
             ['boolean', 'null']
@@ -24,6 +26,11 @@ class ParameterOptionsResolver extends \Symfony\Component\OptionsResolver\Option
         
         $this->setAllowedTypes(
             DTOParamConverter::PROPERTY_OPTION_DISABLED,
+            ['boolean', 'null']
+        );
+
+        $this->setAllowedTypes(
+            DTOParamConverter::PROPERTY_OPTION_UNDEFINEDABLE,
             ['boolean', 'null']
         );
         
