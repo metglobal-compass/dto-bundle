@@ -6,6 +6,7 @@ use Doctrine\Common\Annotations\AnnotationReader;
 use Metglobal\DTOBundle\DTOParamConverter;
 use Metglobal\DTOBundle\Tests\Fixtures\CallableMethodDefinedClass;
 use Metglobal\DTOBundle\Tests\Fixtures\ClassPropertyDefinedClass;
+use Metglobal\DTOBundle\Tests\Fixtures\GroupDefinedClass;
 use Metglobal\DTOBundle\Tests\Fixtures\NotSupportedClass;
 use Metglobal\DTOBundle\Tests\Fixtures\PostSetEventDefinedClass;
 use Metglobal\DTOBundle\Tests\Fixtures\PreSetEventDefinedClass;
@@ -76,7 +77,7 @@ class DTOParamConverterTest extends TestCase
      */
     public function testSimpleParameter()
     {
-        $request = new Request([], [ 'testProperty' => 'test' ]);
+        $request = new Request([], ['testProperty' => 'test']);
         $configuration = $this->createConfiguration(SimpleClass::class, self::VARIABLE_NAME);
         $this->converter->apply($request, $configuration);
 
@@ -94,9 +95,7 @@ class DTOParamConverterTest extends TestCase
         $configuration = $this->createConfiguration(CallableMethodDefinedClass::class, self::VARIABLE_NAME);
         $this->converter->apply($request, $configuration);
 
-        /**
-         * @var CallableMethodDefinedClass|null $target
-         */
+        /** @var CallableMethodDefinedClass|null $target */
         $target = $request->attributes->get(self::VARIABLE_NAME);
         // Call the callback method
         $target->call('givenValue', 'givenValue2', 'anotherValue');
@@ -114,9 +113,7 @@ class DTOParamConverterTest extends TestCase
         );
 
         $this->converter->apply($request, $configuration);
-        /**
-         * @var PreSetEventDefinedClass|null $target
-         */
+        /** @var PreSetEventDefinedClass $target */
         $target = $request->attributes->get(self::VARIABLE_NAME);
 
         $this->assertInstanceOf(PreSetEventDefinedClass::class, $target);
@@ -126,21 +123,19 @@ class DTOParamConverterTest extends TestCase
 
     public function testPostSetEventDefinedClass()
     {
-        $request = new Request([], [ 'testProperty' => 'test' ]);
+        $request = new Request([], ['testProperty' => 'test']);
         $configuration = $this->createConfiguration(
             PostSetEventDefinedClass::class,
             self::VARIABLE_NAME
         );
 
         $this->converter->apply($request, $configuration);
-        /**
-         * @var PostSetEventDefinedClass|null $target
-         */
+        /** @var PostSetEventDefinedClass $target */
         $target = $request->attributes->get(self::VARIABLE_NAME);
 
         $this->assertInstanceOf(PostSetEventDefinedClass::class, $target);
         // We sent it text, but we transformed this value into an array
-        $this->assertSame($target->testProperty, [ 'test' ]);
+        $this->assertSame($target->testProperty, ['test']);
     }
 
     /**
@@ -152,14 +147,12 @@ class DTOParamConverterTest extends TestCase
         $configuration = $this->createConfiguration(SimpleClass::class, self::VARIABLE_NAME);
         $this->converter->apply($request, $configuration);
 
-        /**
-         * @var SimpleClass|null $target
-         */
+        /** @var SimpleClass $target */
         $target = $request->attributes->get(self::VARIABLE_NAME);
         $this->assertInstanceOf(SimpleClass::class, $target);
         /**
          * Because in default properties are nullable
-         * @see \Metglobal\DTOBundle\DTOParamConverter::PROPERTY_OPTION_NULLABLE
+         * @see \Metglobal\DTOBundle\DTOParamConverter::PROPERTY_NULLABLE
          **/
         $this->assertNull($target->testProperty);
     }
@@ -171,9 +164,9 @@ class DTOParamConverterTest extends TestCase
     public function testClassScopeDefinition()
     {
         $request = new Request(
-            [ 'testScopeProperty' => 'wrongValue', 'testAnotherDefinitionProperty' => 1 ],
-            [ 'testScopeProperty' => 'wrongValue2' ],
-            [ 'testScopeProperty' => 'trueValue' ]
+            ['testScopeProperty' => 'wrongValue', 'testAnotherDefinitionProperty' => 1 ],
+            ['testScopeProperty' => 'wrongValue2'],
+            ['testScopeProperty' => 'trueValue']
         );
 
         $configuration = $this->createConfiguration(ClassPropertyDefinedClass::class, self::VARIABLE_NAME);
@@ -215,7 +208,7 @@ class DTOParamConverterTest extends TestCase
      */
     public function testEmptyDefinition()
     {
-        $request = new Request([], [ 'testProperty' => 'test' ]);
+        $request = new Request([], ['testProperty' => 'test']);
         $this->assertDefinition($request, 'testProperty', 'test');
     }
 
@@ -224,7 +217,7 @@ class DTOParamConverterTest extends TestCase
      */
     public function testScopeDefinition()
     {
-        $request = new Request([], [ 'testScopeProperty' => 'wrongValue' ], [ 'testScopeProperty' => 'trueValue' ]);
+        $request = new Request([], ['testScopeProperty' => 'wrongValue'], ['testScopeProperty' => 'trueValue']);
         $this->assertDefinition($request, 'testScopeProperty', 'trueValue');
     }
 
@@ -253,7 +246,7 @@ class DTOParamConverterTest extends TestCase
      */
     public function testPathDefinition()
     {
-        $request = new Request([], [ 'examplePath' => 'testValue' ]);
+        $request = new Request([], ['examplePath' => 'testValue']);
         $this->assertDefinition($request, 'testPathProperty', 'testValue');
     }
 
@@ -262,7 +255,7 @@ class DTOParamConverterTest extends TestCase
      */
     public function testPathExpressionDefinition()
     {
-        $request = new Request([], [ 'exampleExpressionPath' => [ 'exampleChild' => 'testValue' ] ]);
+        $request = new Request([], ['exampleExpressionPath' => ['exampleChild' => 'testValue'] ]);
         $this->assertDefinition($request, 'testPathWithExpressionProperty', 'testValue');
     }
 
@@ -271,13 +264,13 @@ class DTOParamConverterTest extends TestCase
      */
     public function testTypeDefinition()
     {
-        $request = new Request([], [ 'testTypeProperty' => '1' ]);
+        $request = new Request([], ['testTypeProperty' => '1']);
         $this->assertDefinition($request, 'testTypeProperty', 1);
     }
 
     public function testMixedTypeDefinition()
     {
-        $request = new Request([], [ 'testMixedPath' => 1 ]);
+        $request = new Request([], ['testMixedPath' => 1 ]);
         $this->assertDefinition($request, 'testMixedPath', 1);
     }
 
@@ -303,7 +296,7 @@ class DTOParamConverterTest extends TestCase
      */
     public function testFloatTypeDefinition($data, $sameWith)
     {
-        $request = new Request([], [ 'testFloatProperty' => $data ]);
+        $request = new Request([], ['testFloatProperty' => $data ]);
         $this->assertDefinition($request, 'testFloatProperty', $sameWith);
     }
 
@@ -349,7 +342,7 @@ class DTOParamConverterTest extends TestCase
      */
     public function testBooleanTypeDefinition($data, $sameWith)
     {
-        $request = new Request([], [ 'testBooleanProperty' => $data ]);
+        $request = new Request([], ['testBooleanProperty' => $data ]);
         $this->assertDefinition($request, 'testBooleanProperty', $sameWith);
     }
 
@@ -361,7 +354,7 @@ class DTOParamConverterTest extends TestCase
      */
     public function testBoolTypeDefinition($data, $sameWith)
     {
-        $request = new Request([], [ 'testBoolProperty' => $data ]);
+        $request = new Request([], ['testBoolProperty' => $data ]);
         $this->assertDefinition($request, 'testBoolProperty', $sameWith);
     }
 
@@ -407,13 +400,13 @@ class DTOParamConverterTest extends TestCase
      */
     public function testBooleanTypeWithDefaultDefinition($data, bool $sameWith)
     {
-        $request = new Request([], [ 'testBooleanWithDefaultProperty' => $data ]);
+        $request = new Request([], ['testBooleanWithDefaultProperty' => $data ]);
         $this->assertDefinition($request, 'testBooleanWithDefaultProperty', $sameWith);
     }
 
     public function testDisabledDefinition()
     {
-        $request = new Request([], [ 'testDisabledProperty' => 5 ]);
+        $request = new Request([], ['testDisabledProperty' => 5 ]);
         $this->assertDefinition($request, 'testDisabledProperty', null);
     }
 
@@ -514,5 +507,73 @@ class DTOParamConverterTest extends TestCase
             'testDateWithTimeZoneProperty',
             $date
         );
+    }
+
+    private function assertGroupDefinition(Request $request, array $expectedValues)
+    {
+        $configuration = $this->createConfiguration(GroupDefinedClass::class, self::VARIABLE_NAME);
+        $this->converter->apply($request, $configuration);
+
+        /** @var GroupDefinedClass|null $target */
+        $target = $request->attributes->get(self::VARIABLE_NAME);
+        $this->assertInstanceOf(GroupDefinedClass::class, $target);
+
+        foreach ($expectedValues as $index => $value) {
+            $this->assertObjectHasAttribute($index, $target);
+            $this->assertTrue(is_array($target->{$index}));
+
+            $this->assertEmpty(
+                array_diff_assoc($target->{$index}, $value),
+                sprintf(
+                    'Group value is not valid. Given: "%s", expected: "%s"',
+                    implode(',', $target->{$index}),
+                    implode(',', $value)
+                )
+            );
+        }
+    }
+
+    public function groupDataProvider(): array
+    {
+        return [
+            [ // Case 1
+                [ // $data
+                    [ // $request->query
+                        'undefinedableProperty' => 'undefinedableProperty',
+                        'nullableProperty' => null,
+                    ],
+                    [ // $request->request
+                        'simpleProperty' => 'test',
+                        'annotationDefinedProperty' => 'testAnnotation',
+                        'disabledGroupProperty' => 'testDisabled',
+                        // Injecting group property is not a valid operation
+                        'groupTarget' => 'notValidParameter',
+                        // Injecting disabled property into group is not a valid operation
+                        'parameterDisabledProperty' => 'testDisabledParameter'
+                    ]
+                ],
+                [ // $sameWith
+                    'groupTarget' => [
+                        'simpleProperty' => 'test',
+                        'undefinedableProperty' => 'undefinedableProperty',
+                        'nullableProperty' => null,
+                        'parameterDisabledProperty' => null
+                    ],
+                    'nextTarget' => [
+                        'annotationDefinedProperty' => 'testAnnotation'
+                    ]
+                ]
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider groupDataProvider
+     */
+    public function testGroupDefinition(array $data, array $sameWith)
+    {
+        $request = new Request(...$data);
+
+        $this->assertGroupDefinition($request, $sameWith);
     }
 }
