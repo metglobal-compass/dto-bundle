@@ -104,10 +104,10 @@ final class DTOParamConverter implements ParamConverterInterface
                 $scope = $parameters[DTOParameters::PROPERTY_SCOPE];
                 $path = $parameters[DTOParameters::PROPERTY_PATH];
 
-                // If parameter is defined as "undefinedable", means this parameter is not required in body/qs
+                // If parameter is defined as "nullable" means this parameter is not required or nullable given body
                 // Set a new Undefined() instance into request
                 if (
-                    $parameters[DTOParameters::PROPERTY_UNDEFINEDABLE] === true
+                    $parameters[DTOParameters::PROPERTY_NULLABLE] === true
                     && $this->isDefined($request, $scope, $path) === false
                 ) {
                     $this->propertyAccessor->setValue($instance, $parameterName, new Undefined);
@@ -284,7 +284,6 @@ final class DTOParamConverter implements ParamConverterInterface
                 DTOParameters::PROPERTY_TYPE => $annotation->type,
                 DTOParameters::PROPERTY_SCOPE => $annotation->scope,
                 DTOParameters::PROPERTY_DISABLED => $annotation->disabled,
-                DTOParameters::PROPERTY_UNDEFINEDABLE => $annotation->undefinedable,
             ]
         );
     }
@@ -306,7 +305,6 @@ final class DTOParamConverter implements ParamConverterInterface
             DTOParameters::PROPERTY_TYPE => $annotation->type,
             DTOParameters::PROPERTY_DISABLED => $annotation->disabled,
             DTOParameters::PROPERTY_OPTIONS => $annotation->options,
-            DTOParameters::PROPERTY_UNDEFINEDABLE => $annotation->undefinedable
         ];
 
         // We're filtering the options, because the null

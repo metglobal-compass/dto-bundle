@@ -17,7 +17,6 @@ class ParameterOptionsResolver extends \Symfony\Component\OptionsResolver\Option
                 DTOParameters::PROPERTY_NULLABLE => DTOParameters::DEFAULT_NULLABLE,
                 DTOParameters::PROPERTY_DISABLED => DTOParameters::DEFAULT_DISABLED,
                 DTOParameters::PROPERTY_OPTIONS => DTOParameters::DEFAULT_OPTIONS,
-                DTOParameters::PROPERTY_UNDEFINEDABLE => DTOParameters::DEFAULT_UNDEFINEDABLE,
             ]
         );
 
@@ -28,11 +27,6 @@ class ParameterOptionsResolver extends \Symfony\Component\OptionsResolver\Option
         
         $this->setAllowedTypes(
             DTOParameters::PROPERTY_DISABLED,
-            ['boolean', 'null']
-        );
-
-        $this->setAllowedTypes(
-            DTOParameters::PROPERTY_UNDEFINEDABLE,
             ['boolean', 'null']
         );
         

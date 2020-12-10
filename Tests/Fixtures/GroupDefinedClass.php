@@ -17,20 +17,6 @@ class GroupDefinedClass implements Request
     /**
      * @var string
      *
-     * @Parameter(scope="query", undefinedable=true)
-     */
-    public $undefinedableProperty;
-
-    /**
-     * @var string
-     *
-     * @Parameter(scope="query", undefinedable=true)
-     */
-    public $nullableProperty;
-
-    /**
-     * @var string
-     *
      * @Group(target="nextTarget")
      */
     public $annotationDefinedProperty;
