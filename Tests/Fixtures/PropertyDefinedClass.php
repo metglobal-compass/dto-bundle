@@ -41,12 +41,6 @@ class PropertyDefinedClass implements Request
      */
     public $testPathProperty;
 
-    /**
-     * @Parameter(path="[exampleExpressionPath][exampleChild]")
-     *
-     * @var string|null
-     */
-    public $testPathWithExpressionProperty;
 
     /**
      * @Parameter(type="int")
@@ -124,11 +118,4 @@ class PropertyDefinedClass implements Request
      * @var \DateTime
      */
     public $testDateWithTimeZoneProperty;
-
-    /**
-     * @Parameter(undefinedable=true)
-     *
-     * @var string|Undefined
-     */
-    public $testUndefinedableProperty;
 }

@@ -58,7 +58,7 @@ See: `\Metglobal\DTOBundle\DTOParamConverter::supports`.
 
 Default parameter resolver parameters (see: `\Metglobal\DTOBundle\OptionsResolver\ParameterOptionsResolver`, `\Metglobal\DTOBundle\OptionsResolver\DateParameterOptionsResolver`):
 
-    [ 'type' => 'string', 'scope' => 'request', 'disabled' => false, 'nullable' => true, 'options' => [], undefinedable=false ]
+    [ 'type' => 'string', 'scope' => 'request', 'disabled' => false, 'options' => [] ]
 
 Property annotation example: 
 
@@ -66,10 +66,8 @@ Property annotation example:
         type="string",
         scope="request",
         path="pathOfThisParameter",
-        nullable=false,
         disabled=false,
         options={},
-        undefinedable=false
     )
 
 
@@ -101,16 +99,11 @@ public $differentName;
 
 It'll set 3 into $differentName.
 
-**Warning:** This parameter is required per property if you do not define, it'll try to resolve the parameter with it's property name. It means in above example path will `differentName`.
-
-nullable:
---------
-Defined property can be nullable or not.
-**Warning:** If you define a default value, it'll be not nullable field as default 
+**Warning:** This parameter required per property if you do not define, it'll try to resolve the parameter with its property name. It means in above example path will `differentName`.
 
 disabled:
 --------
-Disable injection for selected parameter.
+Disable injection for the selected parameter.
 
 options:
 --------
@@ -123,9 +116,52 @@ options:
     --------
     Available when you set type to date. You can configure datetime's timezone with this property.
 
-undefinedable:
---------------
-Make property undefinedable. This property makes you able to find undefined properties.
+Extra annotation tips
+=====================
+This annotation can be use at property or class. If you define this property to class it will effect all the classes properties.
+
+    Default parameters overrides --> Class annotation parameters (If exists) overrides --> Property annotation parameters (If exists)
+
+For every parameter it call the method that finds the final injection configs **per property**.
+Example:
+
+```php
+<?php
+namespace Metglobal\Compass\Request;
+
+use Metglobal\DTOBundle\Annotation\Parameter;
+use Metglobal\DTOBundle\Request;
+use Metglobal\DTOBundle\Undefined;
+
+/**
+ * @Parameter(scope="query")
+ */
+class DummyRequest implements Request
+{
+    /**
+    * @Parameter(type="int")
+    *
+    * @var int|null|Undefined
+    */
+    public $foo;
+  
+    /**
+    * @Parameter(type="int")
+    *
+    * @var int|null|Undefined
+    */
+    public $bar;
+}
+```
+In above class, the `$foo` will inject from `query` scope and the `$bar` will inject from query with
+integer type cast.
+
+Null/Undefined variables:
+--------
+Every defined property that has no default value is nullable and can be undefined.
+
+**Warning:** If you define a default value to property, converter inject the default value instead of null.
+
 Example:
 
 ```php
@@ -138,56 +174,18 @@ use Metglobal\DTOBundle\Undefined;
 class DummyRequest implements Request
 {
     /**
-    * @Parameter(scope="query", undefinedable=true)
+    * @Parameter(scope="query")
     *
-    * @var string|Undefined
+    * @var string|null|Undefined
     */
-    public $xyzProperty;
+    public $foo;
 }
 ```
 Results would be:
 
-| ?xyzProperty= | ?xyzProperty=dto | ?otherProperty=5 |
+| ?foo= | ?foo=bar | ?baz=5 |
 |---------------|------------------| ---------------- |
-| null          | "dto"            | Undefined()      |
-
-Extra annotation tips
-=====================
-This annotation can be use at property or class. If you define this property to class it will effect all the classes properties.
-
-    Default parameters overrides --> Class annotation parameters (If exists) overrides --> Property annotation parameters (If exists)
-
-For every parameter it call the method that finds the final injection configs **per property**.
-Example:
-```php
-<?php
-namespace Metglobal\Compass\Request;
-
-use Metglobal\DTOBundle\Annotation\Parameter;
-use Metglobal\DTOBundle\Request;
-
-/**
- * @Parameter(scope="query")
- */
-class DummyRequest implements Request
-{
-    /**
-    * @Parameter(type="int")
-    *
-    * @var int
-    */
-    public $xyzProperty;
-  
-    /**
-    * @Parameter(type="int")
-    *
-    * @var int
-    */
-    public $abcProperty;
-}
-```
-In above class, the `$xyzProperty` will inject from `query` scope and the `$abcProperty` will inject from query with
-integer type cast.
+| null          | "bar"            | Undefined()      |
 
 Life cycle events
 =================
@@ -213,6 +211,7 @@ In `call()` method you can modify the object's properties using `...$args` varia
 Example usage:
 --------------
 ### Controller:
+
 ```php
 <?php
 namespace Metglobal\Compass\Controller;
@@ -227,23 +226,26 @@ class DummyController extends Controller
   /**
    * @Route("/dummy/{id}", requirements={"id" = "\d+"}, methods={"DELETE"}, name="dummy_route")
    */
-   public function __invoke(XService $xService, YService $yService, ZService $ZService, DummyRequest $request): JsonResponse
+   public function __invoke(FooService $fooService, BarService $barService, BazService $bazService, DummyRequest $request): JsonResponse
    {
-       $request->call($xService, $yService);
+       $request->call($fooService, $barService);
 
-       return new JsonResponse($ZService->handle($request));
+       return new JsonResponse($bazService->handle($request));
    }
 }
 ```
 
 ### Request:
+
 ```php
 <?php
 namespace Metglobal\Compass\Request;
 
 use Metglobal\DTOBundle\Annotation\Parameter;
+use Metglobal\DTOBundle\Annotation\PostSet;
 use Metglobal\DTOBundle\Annotation\PreSet;
 use Metglobal\DTOBundle\CallableRequest;
+use Metglobal\DTOBundle\Undefined;
 
 /**
  * @Parameter(scope="query")
@@ -253,7 +255,7 @@ class DummyRequest implements CallableRequest
   /**
    * @Parameter(type="int")
    * 
-   * @var int
+   * @var int|null|Undefined
    */
    public $foo;
 
@@ -270,9 +272,9 @@ class DummyRequest implements CallableRequest
 
    public function call(...$args)
    {
-       [ $xService, $yService ] = $args;
+       [ $fooService, $barService ] = $args;
 
-        $this->foo = $xService->aMethod($yService->bMethod($this->foo));
+        $this->foo = $fooService->aMethod($barService->bMethod($this->foo));
    }
 
    /**
@@ -301,25 +303,26 @@ Groups
 You can group injected properties using `@Metglobal\DTOBundle\Annotation\Group` annotation.
 
 Example:
+
 ```php
 <?php
 namespace Metglobal\Compass\Request;
 
 use Metglobal\DTOBundle\Annotation\Parameter;
-use Metglobal\DTOBundle\Annotation\PreSet;
 use Metglobal\DTOBundle\CallableRequest;
+use Metglobal\DTOBundle\Undefined;
 
 /**
- * @Group("exampleGroup")
+ * @Group("fooGroup")
  * @Parameter(scope="query")
  */
 class DummyRequest implements CallableRequest
 {
    /**
     * @Parameter(type="int")
-    * @Group(target="nextGroup")
+    * @Group(target="barGroup")
     * 
-    * @var int
+    * @var int|null|Undefined
     */
    public $foo;
 
@@ -331,13 +334,13 @@ class DummyRequest implements CallableRequest
    public $baz;
    
    /** @var array */
-   public $exampleGroup;
+   public $fooGroup;
 }
 ```
 
 Query: `?foo=fooValue&bar=barValue&baz=bazValue&exampleGroup=bug&nextGroup=bug`
 
-`$exampleGroup` will be:
+`$fooGroup` will be:
 
 ```php
 [
@@ -345,7 +348,7 @@ Query: `?foo=fooValue&bar=barValue&baz=bazValue&exampleGroup=bug&nextGroup=bug`
 ];
 ```
 
-`$nextGroup` will be (defined dynamically):
+`$barGroup` will be (defined dynamically):
 
 ```php
 [

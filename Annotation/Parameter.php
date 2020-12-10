@@ -27,7 +27,4 @@ final class Parameter implements ParameterInterface
 
     /** @var array */
     public $options = [];
-
-    /** @var bool */
-    public $undefinedable;
 }
