@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Metglobal\DTOBundle\OptionsResolver;
 
-use Metglobal\DTOBundle\DTOParamConverter;
+use Metglobal\DTOBundle\DTOParameters;
 
 class ParameterOptionsResolver extends \Symfony\Component\OptionsResolver\OptionsResolver
 {
@@ -10,45 +12,45 @@ class ParameterOptionsResolver extends \Symfony\Component\OptionsResolver\Option
     {
         $this->setDefaults(
             [
-                DTOParamConverter::PROPERTY_OPTION_TYPE => DTOParamConverter::DEFAULT_OPTION_TYPE,
-                DTOParamConverter::PROPERTY_OPTION_SCOPE => DTOParamConverter::DEFAULT_OPTION_SCOPE,
-                DTOParamConverter::PROPERTY_OPTION_NULLABLE => DTOParamConverter::DEFAULT_OPTION_NULLABLE,
-                DTOParamConverter::PROPERTY_OPTION_DISABLED => DTOParamConverter::DEFAULT_OPTION_DISABLED,
-                DTOParamConverter::PROPERTY_OPTION_OPTIONS => DTOParamConverter::DEFAULT_OPTION_OPTIONS,
-                DTOParamConverter::PROPERTY_OPTION_UNDEFINEDABLE => DTOParamConverter::DEFAULT_OPTION_UNDEFINEDABLE,
+                DTOParameters::PROPERTY_TYPE => DTOParameters::DEFAULT_TYPE,
+                DTOParameters::PROPERTY_SCOPE => DTOParameters::DEFAULT_SCOPE,
+                DTOParameters::PROPERTY_NULLABLE => DTOParameters::DEFAULT_NULLABLE,
+                DTOParameters::PROPERTY_DISABLED => DTOParameters::DEFAULT_DISABLED,
+                DTOParameters::PROPERTY_OPTIONS => DTOParameters::DEFAULT_OPTIONS,
+                DTOParameters::PROPERTY_UNDEFINEDABLE => DTOParameters::DEFAULT_UNDEFINEDABLE,
             ]
         );
 
         $this->setAllowedTypes(
-            DTOParamConverter::PROPERTY_OPTION_NULLABLE,
+            DTOParameters::PROPERTY_NULLABLE,
             ['boolean', 'null']
         );
         
         $this->setAllowedTypes(
-            DTOParamConverter::PROPERTY_OPTION_DISABLED,
+            DTOParameters::PROPERTY_DISABLED,
             ['boolean', 'null']
         );
 
         $this->setAllowedTypes(
-            DTOParamConverter::PROPERTY_OPTION_UNDEFINEDABLE,
+            DTOParameters::PROPERTY_UNDEFINEDABLE,
             ['boolean', 'null']
         );
         
         $this->setAllowedTypes(
-            DTOParamConverter::PROPERTY_OPTION_OPTIONS,
+            DTOParameters::PROPERTY_OPTIONS,
             ['array']
         );
         
         $this->setAllowedValues(
-            DTOParamConverter::PROPERTY_OPTION_TYPE,
+            DTOParameters::PROPERTY_TYPE,
             ['date', 'float', 'string', 'boolean', 'bool', 'integer', 'int', 'mixed', null]
         );
         
         $this->setAllowedValues(
-            DTOParamConverter::PROPERTY_OPTION_SCOPE,
+            DTOParameters::PROPERTY_SCOPE,
             ['request', 'query', 'headers', 'attributes', null]
         );
 
-        $this->setRequired([DTOParamConverter::PROPERTY_OPTION_PATH]);
+        $this->setRequired([DTOParameters::PROPERTY_PATH]);
     }
 }

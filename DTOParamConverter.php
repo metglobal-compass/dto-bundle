@@ -4,6 +4,7 @@ namespace Metglobal\DTOBundle;
 
 use Doctrine\Common\Annotations\Reader;
 use Metglobal\DTOBundle\Annotation\DateParameter;
+use Metglobal\DTOBundle\Annotation\Group;
 use Metglobal\DTOBundle\Annotation\Parameter;
 use Metglobal\DTOBundle\Annotation\ParameterInterface;
 use Metglobal\DTOBundle\Annotation\PostSet;
@@ -24,21 +25,6 @@ use Throwable;
 
 final class DTOParamConverter implements ParamConverterInterface
 {
-    const PROPERTY_OPTION_SCOPE = 'scope';
-    const PROPERTY_OPTION_PATH = 'path';
-    const PROPERTY_OPTION_TYPE = 'type';
-    const PROPERTY_OPTION_NULLABLE = 'nullable';
-    const PROPERTY_OPTION_DISABLED = 'disabled';
-    const PROPERTY_OPTION_OPTIONS = 'options';
-    const PROPERTY_OPTION_UNDEFINEDABLE = 'undefinedable';
-
-    const DEFAULT_OPTION_TYPE = 'string';
-    const DEFAULT_OPTION_SCOPE = 'request';
-    const DEFAULT_OPTION_NULLABLE = true;
-    const DEFAULT_OPTION_DISABLED = false;
-    const DEFAULT_OPTION_OPTIONS = [];
-    const DEFAULT_OPTION_UNDEFINEDABLE = false;
-
     /** @var PropertyAccessorInterface */
     protected $propertyAccessor;
 
@@ -69,8 +55,8 @@ final class DTOParamConverter implements ParamConverterInterface
                 return null;
             }
 
-            $format = $parameters[self::PROPERTY_OPTION_OPTIONS][DateParameterOptionsResolver::PROPERTY_OPTION_FORMAT];
-            $timezone = $parameters[self::PROPERTY_OPTION_OPTIONS][DateParameterOptionsResolver::PROPERTY_OPTION_TIMEZONE];
+            $format = $parameters[DTOParameters::PROPERTY_OPTIONS][DateParameterOptionsResolver::PROPERTY_FORMAT];
+            $timezone = $parameters[DTOParameters::PROPERTY_OPTIONS][DateParameterOptionsResolver::PROPERTY_TIMEZONE];
 
             if ($timezone) {
                 return \DateTime::createFromFormat($format, $date, new \DateTimeZone($timezone));
@@ -107,14 +93,21 @@ final class DTOParamConverter implements ParamConverterInterface
             $reflectionClass = new ReflectionClass($instance);
             $this->callEvent($reflectionClass, $instance, PreSet::class);
 
+            $groups = $this->findGroups($reflectionClass);
+
             foreach ($this->getProperties($instance, $reflectionClass) as $parameterName => $parameters) {
-                $scope = $parameters[self::PROPERTY_OPTION_SCOPE];
-                $path = $parameters[self::PROPERTY_OPTION_PATH];
+                // Do not inject group properties
+                if (array_key_exists($parameterName, $groups)) {
+                    continue;
+                }
+
+                $scope = $parameters[DTOParameters::PROPERTY_SCOPE];
+                $path = $parameters[DTOParameters::PROPERTY_PATH];
 
                 // If parameter is defined as "undefinedable", means this parameter is not required in body/qs
                 // Set a new Undefined() instance into request
                 if (
-                    $parameters[self::PROPERTY_OPTION_UNDEFINEDABLE] === true
+                    $parameters[DTOParameters::PROPERTY_UNDEFINEDABLE] === true
                     && $this->isDefined($request, $scope, $path) === false
                 ) {
                     $this->propertyAccessor->setValue($instance, $parameterName, new Undefined);
@@ -130,11 +123,15 @@ final class DTOParamConverter implements ParamConverterInterface
 
                 $value = $this->castValue($value, $parameters);
 
-                if ($value !== null || ($value === null && $parameters[self::PROPERTY_OPTION_NULLABLE] === true)) {
+                if (
+                    $value !== null
+                    || ($value === null && $parameters[DTOParameters::PROPERTY_NULLABLE] === true)
+                ) {
                     $this->propertyAccessor->setValue($instance, $parameterName, $value);
                 }
             }
 
+            $this->groupProperties($groups, $instance);
             $this->callEvent($reflectionClass, $instance, PostSet::class);
         } catch (Throwable $e) {
             throw new DTOException('An error occurred while setting parameters into DTO.', $e);
@@ -154,6 +151,61 @@ final class DTOParamConverter implements ParamConverterInterface
 
             $reflectionMethod->invoke($instance);
         }
+    }
+
+    protected function groupProperties(array $groups, RequestDTO $instance)
+    {
+        foreach ($groups as $groupName => $relatedProperties) {
+            $values = [];
+
+            /** @var ReflectionProperty $property */
+            foreach ($relatedProperties as $property) {
+                $propertyName = $property->getName();
+
+                if (array_key_exists($propertyName, $groups) === true) {
+                    // If property is group property, skip
+                    continue;
+                }
+
+                $values[$propertyName] = $this->propertyAccessor->getValue($instance, $propertyName);
+            }
+
+            $instance->{$groupName} = $values;
+        }
+    }
+
+    protected function findGroups(ReflectionClass $reflectionClass): array
+    {
+        /** @var Group $classAnnotation */
+        $classAnnotation = $this->annotationReader->getClassAnnotation($reflectionClass, Group::class);
+        $classGroup = null;
+
+        if ($classAnnotation !== null && $classAnnotation->disabled !== true) {
+            $classGroup = $classAnnotation->target;
+        }
+
+        $groups = [];
+
+        foreach ($reflectionClass->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
+            $group = $classGroup;
+
+            /** @var Group $annotation */
+            $annotation = $this->annotationReader->getPropertyAnnotation($property, Group::class);
+
+            if ($annotation !== null && $annotation->disabled === true) {
+                $group = null;
+            } elseif ($annotation !== null) {
+                $group = $annotation->target;
+            }
+
+            if (empty($group)) {
+                continue;
+            }
+
+            $groups[$group][] = $property;
+        }
+
+        return $groups;
     }
 
     /**
@@ -193,7 +245,7 @@ final class DTOParamConverter implements ParamConverterInterface
             if ($reflectionProperty->getValue($dto) !== null) {
                 // If user define a default value it must not override with null
                 $parameters[] = [
-                    self::PROPERTY_OPTION_NULLABLE => false
+                    DTOParameters::PROPERTY_NULLABLE => false
                 ];
             }
 
@@ -203,9 +255,9 @@ final class DTOParamConverter implements ParamConverterInterface
 
             // If parameter type has resolver, resolve parameters with using it
             if ($propertyAnnotation && isset($this->optionsResolvers[$propertyAnnotation->type])) {
-                $summary[$propertyName][self::PROPERTY_OPTION_OPTIONS] =
+                $summary[$propertyName][DTOParameters::PROPERTY_OPTIONS] =
                     $this->optionsResolvers[$propertyAnnotation->type]->resolve(
-                        $summary[$propertyName][self::PROPERTY_OPTION_OPTIONS]
+                        $summary[$propertyName][DTOParameters::PROPERTY_OPTIONS]
                     )
                 ;
             }
@@ -229,10 +281,10 @@ final class DTOParamConverter implements ParamConverterInterface
         // values are overriding the parent configurations
         return $this->filterOptions(
             [
-                self::PROPERTY_OPTION_TYPE => $annotation->type,
-                self::PROPERTY_OPTION_SCOPE => $annotation->scope,
-                self::PROPERTY_OPTION_DISABLED => $annotation->disabled,
-                self::PROPERTY_OPTION_UNDEFINEDABLE => $annotation->undefinedable,
+                DTOParameters::PROPERTY_TYPE => $annotation->type,
+                DTOParameters::PROPERTY_SCOPE => $annotation->scope,
+                DTOParameters::PROPERTY_DISABLED => $annotation->disabled,
+                DTOParameters::PROPERTY_UNDEFINEDABLE => $annotation->undefinedable,
             ]
         );
     }
@@ -249,12 +301,12 @@ final class DTOParamConverter implements ParamConverterInterface
     protected function readPropertyAnnotationParameters(ParameterInterface $annotation, ReflectionProperty $property): array
     {
         $properties = [
-            self::PROPERTY_OPTION_SCOPE => $annotation->scope,
-            self::PROPERTY_OPTION_PATH => $annotation->path ?? $property->getName(),
-            self::PROPERTY_OPTION_TYPE => $annotation->type,
-            self::PROPERTY_OPTION_DISABLED => $annotation->disabled,
-            self::PROPERTY_OPTION_OPTIONS => $annotation->options,
-            self::PROPERTY_OPTION_UNDEFINEDABLE => $annotation->undefinedable
+            DTOParameters::PROPERTY_SCOPE => $annotation->scope,
+            DTOParameters::PROPERTY_PATH => $annotation->path ?? $property->getName(),
+            DTOParameters::PROPERTY_TYPE => $annotation->type,
+            DTOParameters::PROPERTY_DISABLED => $annotation->disabled,
+            DTOParameters::PROPERTY_OPTIONS => $annotation->options,
+            DTOParameters::PROPERTY_UNDEFINEDABLE => $annotation->undefinedable
         ];
 
         // We're filtering the options, because the null
@@ -276,7 +328,7 @@ final class DTOParamConverter implements ParamConverterInterface
 
     protected function castValue($value, array $parameters)
     {
-        $typeCast = $parameters[self::PROPERTY_OPTION_TYPE];
+        $typeCast = $parameters[DTOParameters::PROPERTY_TYPE];
 
         // If we apply typecast into null int returns 0, string returns "", bool returns false
         // It can be crash the application, to prevent this kind of circumstances we're checking the value is null or not

@@ -122,6 +122,7 @@ options:
     timezone:
     --------
     Available when you set type to date. You can configure datetime's timezone with this property.
+
 undefinedable:
 --------------
 Make property undefinedable. This property makes you able to find undefined properties.
@@ -293,6 +294,84 @@ class DummyRequest implements CallableRequest
    }
 }
 ```
+
+Groups
+=================
+
+You can group injected properties using `@Metglobal\DTOBundle\Annotation\Group` annotation.
+
+Example:
+```php
+<?php
+namespace Metglobal\Compass\Request;
+
+use Metglobal\DTOBundle\Annotation\Parameter;
+use Metglobal\DTOBundle\Annotation\PreSet;
+use Metglobal\DTOBundle\CallableRequest;
+
+/**
+ * @Group("exampleGroup")
+ * @Parameter(scope="query")
+ */
+class DummyRequest implements CallableRequest
+{
+   /**
+    * @Parameter(type="int")
+    * @Group(target="nextGroup")
+    * 
+    * @var int
+    */
+   public $foo;
+
+   /**
+    * @Group(disabled=true)
+    */
+   public $bar;
+
+   public $baz;
+   
+   /** @var array */
+   public $exampleGroup;
+}
+```
+
+Query: `?foo=fooValue&bar=barValue&baz=bazValue&exampleGroup=bug&nextGroup=bug`
+
+`$exampleGroup` will be:
+
+```php
+[
+    'baz' => 'bazValue',
+];
+```
+
+`$nextGroup` will be (defined dynamically):
+
+```php
+[
+    'foo' => 'fooValue',
+];
+```
+
+Available Group annotation options
+===========================
+You can use this annotation on classes (it will apply the group options on every property), or on property
+
+target:
+--------
+Target group variable. Either the target is defined or not, the converter will put the variables into given target.
+
+disabled:
+--------
+You can still use property injection but it disables grouping for property or whole class.
+
+Important Notes:
+----------------
+
+- Group properties are not injectable
+- Group annotation can be used on class or property
+- You can modify groups with `@Metglobal\DTOBundle\Annotation\PostSet` event
+- If you disable property injection (`@Metglobal\DTOBundle\Annotation\Parameter(disabled=true)`) it will also set the property into group. To disable set group's `disabled` option to true.
 
 Contributing
 ============
