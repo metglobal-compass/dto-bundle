@@ -58,7 +58,7 @@ See: `\Metglobal\DTOBundle\DTOParamConverter::supports`.
 
 Default parameter resolver parameters (see: `\Metglobal\DTOBundle\OptionsResolver\ParameterOptionsResolver`, `\Metglobal\DTOBundle\OptionsResolver\DateParameterOptionsResolver`):
 
-    [ 'type' => 'string', 'scope' => 'request', 'disabled' => false, 'options' => [] ]
+    [ 'type' => 'string', 'scope' => 'request', 'disabled' => false, 'options' => [], 'undefined' => false ]
 
 Property annotation example: 
 
@@ -68,6 +68,7 @@ Property annotation example:
         path="pathOfThisParameter",
         disabled=false,
         options={},
+        undefined=false
     )
 
 
@@ -115,6 +116,10 @@ options:
     timezone:
     --------
     Available when you set type to date. You can configure datetime's timezone with this property.
+
+undefinedable:
+--------------
+Make property undefinedable. This property makes you able to find undefined properties.
 
 Extra annotation tips
 =====================
