@@ -151,7 +151,11 @@ class DTOParamConverterTest extends TestCase
         $target = $request->attributes->get(self::VARIABLE_NAME);
         $this->assertInstanceOf(SimpleClass::class, $target);
 
-        $this->assertInstanceOf(get_class($target->testProperty), new Undefined);
+        /**
+         * Because in default properties are nullable
+         * @see \Metglobal\DTOBundle\DTOParamConverter::PROPERTY_NULLABLE
+         **/
+        $this->assertNull($target->testProperty);
     }
 
     /**
@@ -405,6 +409,18 @@ class DTOParamConverterTest extends TestCase
         $this->assertDefinition($request, 'testHeaderProperty', '5');
     }
 
+    public function testUndefinedableUndefinedValueDefinition()
+    {
+        $request = new Request();
+        $this->assertDefinition($request, 'testUndefinedableProperty', new Undefined);
+    }
+
+    public function testUndefinedableDefinedValueDefinition()
+    {
+        $request = new Request([], ['testUndefinedableProperty' => '1']);
+        $this->assertDefinition($request, 'testUndefinedableProperty', '1');
+    }
+
     private function assertDateDefinition(Request $request, string $propertyName, $actualValue)
     {
         $configuration = $this->createConfiguration(PropertyDefinedClass::class, self::VARIABLE_NAME);
@@ -414,7 +430,7 @@ class DTOParamConverterTest extends TestCase
         $target = $request->attributes->get(self::VARIABLE_NAME);
         $this->assertInstanceOf(PropertyDefinedClass::class, $target);
 
-        /** @var \DateTime|null|Undefined $computedDate */
+        /** @var \DateTime|null $computedDate */
         $computedDate = $target->$propertyName;
 
         if ($actualValue === null) {
@@ -511,6 +527,8 @@ class DTOParamConverterTest extends TestCase
             [ // Case 1
                 [ // $data
                     [ // $request->query
+                        'undefinedableProperty' => 'undefinedableProperty',
+                        'nullableProperty' => null,
                     ],
                     [ // $request->request
                         'simpleProperty' => 'test',
@@ -525,6 +543,7 @@ class DTOParamConverterTest extends TestCase
                 [ // $sameWith
                     'groupTarget' => [
                         'simpleProperty' => 'test',
+                        'undefinedableProperty' => 'undefinedableProperty',
                         'nullableProperty' => null,
                         'parameterDisabledProperty' => null
                     ],

@@ -10,10 +10,12 @@ interface DTOParameters
     const PROPERTY_NULLABLE = 'nullable';
     const PROPERTY_DISABLED = 'disabled';
     const PROPERTY_OPTIONS = 'options';
+    const PROPERTY_UNDEFINED = 'undefined';
 
     const DEFAULT_TYPE = 'string';
     const DEFAULT_SCOPE = 'request';
     const DEFAULT_NULLABLE = true;
     const DEFAULT_DISABLED = false;
     const DEFAULT_OPTIONS = [];
+    const DEFAULT_UNDEFINED = false;
 }

@@ -99,7 +99,7 @@ class PropertyDefinedClass implements Request
     public $testHeaderProperty;
 
     /**
-     * @Parameter(type="date")
+     * @Parameter(type="date", undefined=true)
      * 
      * @var \DateTime
      */
@@ -118,4 +118,11 @@ class PropertyDefinedClass implements Request
      * @var \DateTime
      */
     public $testDateWithTimeZoneProperty;
+
+    /**
+     * @Parameter(undefined=true)
+     *
+     * @var string|Undefined
+     */
+    public $testUndefinedableProperty;
 }
