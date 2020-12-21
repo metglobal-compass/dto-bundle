@@ -1,3 +1,10 @@
+## 0.4.0 (December 22, 2020)
+  - README updated
+  - Undefined option added with optional choice
+  - Undefined variable option removed
+  - Group annotation added
+  - Undefined variable option added
+
 ## 0.3.0 (October 08, 2020)
   - Mixed type support added and 'bool' type alias added to allowed types.
   - Float type support added to Parameter annotation.
