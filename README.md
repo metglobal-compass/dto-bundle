@@ -146,14 +146,14 @@ class DummyRequest implements Request
     /**
     * @Parameter(type="int")
     *
-    * @var int|null|Undefined
+    * @var int|null
     */
     public $foo;
   
     /**
     * @Parameter(type="int")
     *
-    * @var int|null|Undefined
+    * @var int|null
     */
     public $bar;
 }
@@ -179,7 +179,7 @@ use Metglobal\DTOBundle\Undefined;
 class DummyRequest implements Request
 {
     /**
-    * @Parameter(scope="query")
+    * @Parameter(scope="query", undefined=true)
     *
     * @var string|null|Undefined
     */
@@ -260,7 +260,7 @@ class DummyRequest implements CallableRequest
   /**
    * @Parameter(type="int")
    * 
-   * @var int|null|Undefined
+   * @var int|null
    */
    public $foo;
 
@@ -324,7 +324,7 @@ use Metglobal\DTOBundle\Undefined;
 class DummyRequest implements CallableRequest
 {
    /**
-    * @Parameter(type="int")
+    * @Parameter(type="int", undefined=true)
     * @Group(target="barGroup")
     * 
     * @var int|null|Undefined
